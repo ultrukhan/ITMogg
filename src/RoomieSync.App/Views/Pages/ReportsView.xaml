@@ -1,0 +1,118 @@
+<UserControl x:Class="RoomieSync.App.Views.Pages.ReportsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:RoomieSync.App.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,22,28,28">
+            
+            <UniformGrid Columns="4" Margin="-10,0,-10,20">
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Reports.TotalSpent}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding Total, Converter={StaticResource Money}}" Style="{StaticResource CardTitle}" FontSize="20" FontWeight="Bold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Reports.MonthlyAverage}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding MonthlyAverage, Converter={StaticResource Money}}" Style="{StaticResource CardTitle}" FontSize="20" FontWeight="Bold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Reports.ExpenseCount}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding ExpenseCount}" Style="{StaticResource CardTitle}" FontSize="20" FontWeight="Bold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Reports.TopCategory}" Style="{StaticResource Caption}" />
+                        <TextBlock Text="{Binding TopCategory}" Style="{StaticResource CardTitle}" FontSize="20" FontWeight="Bold" Margin="0,4,0,0" />
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            <Grid Margin="0,0,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="1.6*" />
+                    <ColumnDefinition Width="20" />
+                    <ColumnDefinition Width="1*" />
+                </Grid.ColumnDefinitions>
+                
+                <Border Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Reports.ByMonth}" Style="{StaticResource CardTitle}" Margin="0,0,0,14" />
+                        <c:BarChart ItemsSource="{Binding Monthly}" Height="240" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Column="2" Style="{StaticResource Card}">
+                    <StackPanel>
+                        <TextBlock Text="{DynamicResource S.Dashboard.ByCategory}" Style="{StaticResource CardTitle}" Margin="0,0,0,14" />
+                        <c:DonutChart ItemsSource="{Binding Categories}" Width="130" Height="130" Margin="0,0,0,14" />
+                        <ItemsControl ItemsSource="{Binding Categories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="48" />
+                                        </Grid.ColumnDefinitions>
+                                        <Border Width="10" Height="10" CornerRadius="2" Background="{Binding Brush}" Margin="0,0,8,0" VerticalAlignment="Center" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Label}" Style="{StaticResource BaseText}" FontSize="12" />
+                                        <TextBlock Grid.Column="2" Text="{Binding Value, Converter={StaticResource Money}}" Style="{StaticResource BaseText}" FontSize="12" FontWeight="SemiBold" />
+                                        <TextBlock Grid.Column="3" Text="{Binding Percent, StringFormat={}{0:0}%}" Style="{StaticResource Caption}" HorizontalAlignment="Right" />
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Grid>
+
+            
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource S.Reports.ByMember}" Style="{StaticResource CardTitle}" Margin="0,0,0,14" />
+                    <Grid Margin="0,0,0,8">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="2*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                            <ColumnDefinition Width="1*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Text="{DynamicResource S.Reports.Member}" Style="{StaticResource TableHeader}" />
+                        <TextBlock Grid.Column="1" Text="{DynamicResource S.Reports.Paid}" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="2" Text="{DynamicResource S.Reports.Share}" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" />
+                        <TextBlock Grid.Column="3" Text="{DynamicResource S.Reports.Net}" Style="{StaticResource TableHeader}" HorizontalAlignment="Right" />
+                    </Grid>
+                    <Border Style="{StaticResource Divider}" />
+                    <ItemsControl ItemsSource="{Binding MemberRows}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,9">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="2*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                        <ColumnDefinition Width="1*" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:Avatar Size="28" Initials="{Binding Member.Initials}" ColorHex="{Binding Member.AvatarColor}" Margin="0,0,10,0" />
+                                        <TextBlock Text="{Binding Member.DisplayName}" Style="{StaticResource BaseText}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                    <TextBlock Grid.Column="1" Text="{Binding Paid, Converter={StaticResource Money}}" Style="{StaticResource BaseText}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="2" Text="{Binding Share, Converter={StaticResource Money}}" Style="{StaticResource Muted}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="3" Text="{Binding Net, Converter={StaticResource Money}, ConverterParameter=signed}" Style="{StaticResource BaseText}"
+                                               FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

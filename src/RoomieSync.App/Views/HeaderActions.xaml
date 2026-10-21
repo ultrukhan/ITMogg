@@ -1,0 +1,87 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="../Themes/Controls.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <DataTemplate x:Key="HeaderActions.DashboardViewModel">
+        <Button Style="{StaticResource PrimaryButton}" Command="{Binding AddExpenseCommand}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" Foreground="White" FontSize="11" Margin="0,0,8,0" />
+                <TextBlock Text="{DynamicResource S.Expenses.Add}" />
+            </StackPanel>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HeaderActions.ExpensesViewModel">
+        <StackPanel Orientation="Horizontal">
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE896;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Csv}" />
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportPdfCommand}" Margin="0,0,12,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE8A5;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Pdf}" />
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource PrimaryButton}" Command="{Binding AddExpenseCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" Foreground="White" FontSize="11" Margin="0,0,8,0" />
+                    <TextBlock Text="{DynamicResource S.Expenses.Add}" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HeaderActions.AddExpenseViewModel">
+        <Button Style="{StaticResource IconButton}" Content="&#xE711;" FontSize="11" Command="{Binding CancelCommand}" ToolTip="{DynamicResource S.Common.Close}" />
+    </DataTemplate>
+
+    <DataTemplate x:Key="HeaderActions.SettlementsViewModel">
+        <StackPanel Orientation="Horizontal">
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE896;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Csv}" />
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportPdfCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE8A5;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Pdf}" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HeaderActions.ChoresViewModel">
+        <Button Style="{StaticResource PrimaryButton}" Command="{Binding CreateTaskCommand}">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="&#xE710;" Style="{StaticResource Icon}" Foreground="White" FontSize="11" Margin="0,0,8,0" />
+                <TextBlock Text="{DynamicResource S.Chores.CreateTask}" />
+            </StackPanel>
+        </Button>
+    </DataTemplate>
+
+    <DataTemplate x:Key="HeaderActions.ReportsViewModel">
+        <StackPanel Orientation="Horizontal">
+            <ComboBox Style="{StaticResource FilterComboBox}" ItemsSource="{Binding Periods}" SelectedItem="{Binding SelectedPeriod}" Margin="0,0,10,0" MinWidth="160" />
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportCsvCommand}" Margin="0,0,8,0">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE896;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Csv}" />
+                </StackPanel>
+            </Button>
+            <Button Style="{StaticResource SecondaryButton}" Command="{Binding ExportPdfCommand}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="&#xE8A5;" Style="{StaticResource Icon}" FontSize="12" Margin="0,0,7,0" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{DynamicResource S.Export.Pdf}" />
+                </StackPanel>
+            </Button>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>
