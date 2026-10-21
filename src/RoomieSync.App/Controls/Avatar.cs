@@ -4,7 +4,7 @@ using System.Windows.Media;
 
 namespace RoomieSync.App.Controls;
 
-/// <summary>Круглий аватар з ініціалами (замість фото з мокапів).</summary>
+
 public sealed class Avatar : Control
 {
     public static readonly DependencyProperty InitialsProperty =
@@ -51,7 +51,7 @@ public sealed class Avatar : Control
             brush.Freeze();
             d.SetValue(FillPropertyKey, brush);
         }
-        catch (FormatException) { /* залишаємо колір за замовчуванням */ }
+        catch (FormatException)
     }
 
     private static Color Lighten(Color c, double k) => Color.FromRgb(
