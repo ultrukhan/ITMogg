@@ -1,0 +1,156 @@
+<UserControl x:Class="RoomieSync.App.Views.Pages.SettlementsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:c="clr-namespace:RoomieSync.App.Controls">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="28,22,28,28">
+            
+            <UniformGrid Columns="3" Margin="-10,0,-10,20">
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconTile}" Width="40" Height="40">
+                            <TextBlock Text="&#xE8AB;" Style="{StaticResource Icon}" Foreground="{StaticResource PrimaryBrush}" />
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{DynamicResource S.Settlements.TotalTransfers}" Style="{StaticResource Caption}" />
+                            <TextBlock Text="{Binding TransferCount}" Style="{StaticResource CardTitle}" FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconTile}" Width="40" Height="40" Background="{StaticResource SuccessLightBrush}">
+                            <TextBlock Text="&#xE8C7;" Style="{StaticResource Icon}" Foreground="{StaticResource SuccessBrush}" />
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{DynamicResource S.Settlements.TotalAmount}" Style="{StaticResource Caption}" />
+                            <TextBlock Text="{Binding TotalToSettle, Converter={StaticResource Money}}" Style="{StaticResource CardTitle}" FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                <Border Style="{StaticResource Card}" Margin="10,0" Padding="20,16">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource IconTile}" Width="40" Height="40" Background="{StaticResource PurpleLightBrush}">
+                            <TextBlock Text="&#xE734;" Style="{StaticResource Icon}" Foreground="{StaticResource PurpleBrush}" />
+                        </Border>
+                        <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                            <TextBlock Text="{DynamicResource S.Settlements.Saved}" Style="{StaticResource Caption}" />
+                            <TextBlock Text="{Binding TransfersSavedText}" Style="{StaticResource CardTitle}" FontSize="18" FontWeight="Bold" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+            </UniformGrid>
+
+            
+            <Border Style="{StaticResource Card}" Margin="0,0,0,20">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                        <TextBlock Text="&#xE946;" Style="{StaticResource Icon}" Foreground="{StaticResource PrimaryBrush}" FontSize="13" Margin="0,0,8,0" />
+                        <TextBlock Text="{DynamicResource S.Settlements.Optimized}" Style="{StaticResource Muted}" />
+                    </StackPanel>
+
+                    
+                    <StackPanel Margin="0,30" HorizontalAlignment="Center" Visibility="{Binding IsSettled, Converter={StaticResource BoolToVis}}">
+                        <Border Width="56" Height="56" CornerRadius="28" Background="{StaticResource SuccessLightBrush}">
+                            <TextBlock Text="&#xE73E;" Style="{StaticResource Icon}" Foreground="{StaticResource SuccessBrush}" FontSize="22" />
+                        </Border>
+                        <TextBlock Text="{DynamicResource S.Settlements.AllDoneTitle}" Style="{StaticResource CardTitle}" HorizontalAlignment="Center" Margin="0,12,0,0" />
+                        <TextBlock Text="{DynamicResource S.Settlements.AllDoneMessage}" Style="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,4,0,0" />
+                    </StackPanel>
+
+                    <ItemsControl ItemsSource="{Binding Transfers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Style="{StaticResource InnerCard}" Margin="0,0,0,12" Padding="16,14">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        
+                                        <Grid Width="96" Height="44">
+                                            <c:Avatar Size="40" Initials="{Binding From.Initials}" ColorHex="{Binding From.AvatarColor}" HorizontalAlignment="Left" />
+                                            <c:Avatar Size="40" Initials="{Binding To.Initials}" ColorHex="{Binding To.AvatarColor}" HorizontalAlignment="Right" />
+                                            <Border Width="24" Height="24" CornerRadius="12" Background="#FDEDED" BorderBrush="White" BorderThickness="2" HorizontalAlignment="Center">
+                                                <TextBlock Text="&#xE72A;" Style="{StaticResource Icon}" Foreground="{StaticResource DangerBrush}" FontSize="9" />
+                                            </Border>
+                                        </Grid>
+                                        <StackPanel Grid.Column="1" Margin="16,0" VerticalAlignment="Center">
+                                            <TextBlock Style="{StaticResource BaseText}" FontSize="12.5">
+                                                <Run Text="{Binding FromName, Mode=OneWay}" FontWeight="SemiBold" />
+                                                <Run Text="{DynamicResource S.Settlements.Owes}" Foreground="{StaticResource TextSecondaryBrush}" />
+                                                <Run Text="{Binding ToName, Mode=OneWay}" FontWeight="SemiBold" />
+                                            </TextBlock>
+                                            <TextBlock Text="{Binding Amount, Converter={StaticResource Money}}" Style="{StaticResource CardTitle}" FontSize="18" FontWeight="Bold" Margin="0,2,0,0" />
+                                        </StackPanel>
+                                        <Button Grid.Column="2" Style="{StaticResource PrimaryButton}" Padding="16,8" FontSize="12" VerticalAlignment="Center"
+                                                Command="{Binding DataContext.SettleUpCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="&#xE73E;" Style="{StaticResource Icon}" Foreground="White" FontSize="10" Margin="0,0,7,0" />
+                                                <TextBlock Text="{DynamicResource S.Settlements.SettleUp}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+
+            
+            <Border Style="{StaticResource Card}">
+                <StackPanel>
+                    <TextBlock Text="{DynamicResource S.Settlements.Balances}" Style="{StaticResource CardTitle}" Margin="0,0,0,4" />
+                    <TextBlock Text="{DynamicResource S.Settlements.BalancesHint}" Style="{StaticResource Muted}" Margin="0,0,0,14" />
+                    <ItemsControl ItemsSource="{Binding Balances}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,8">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="200" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="120" />
+                                    </Grid.ColumnDefinitions>
+                                    <StackPanel Orientation="Horizontal">
+                                        <c:Avatar Size="32" Initials="{Binding Member.Initials}" ColorHex="{Binding Member.AvatarColor}" Margin="0,0,10,0" />
+                                        <StackPanel VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Member.DisplayName}" Style="{StaticResource BaseText}" FontWeight="SemiBold" />
+                                            <TextBlock Text="{Binding StatusText}" Style="{StaticResource Caption}" FontSize="10.5" />
+                                        </StackPanel>
+                                    </StackPanel>
+                                    
+                                    <Grid Grid.Column="1" Height="8" VerticalAlignment="Center" Margin="10,0">
+                                        <Border CornerRadius="4" Background="{StaticResource SurfaceAltBrush}" />
+                                        <Border x:Name="Bar" CornerRadius="4" HorizontalAlignment="Left" Background="{StaticResource SuccessBrush}">
+                                            <Border.Width>
+                                                <MultiBinding Converter="{StaticResource RatioWidth}">
+                                                    <Binding Path="BarRatio" />
+                                                    <Binding Path="ActualWidth" RelativeSource="{RelativeSource AncestorType=Grid}" />
+                                                </MultiBinding>
+                                            </Border.Width>
+                                        </Border>
+                                    </Grid>
+                                    <TextBlock x:Name="Amount" Grid.Column="2" Text="{Binding Balance, Converter={StaticResource Money}, ConverterParameter=signed}"
+                                               Style="{StaticResource BaseText}" FontWeight="SemiBold" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                               Foreground="{StaticResource TextSecondaryBrush}" />
+                                </Grid>
+                                <DataTemplate.Triggers>
+                                    <DataTrigger Binding="{Binding IsPositive}" Value="True">
+                                        <Setter TargetName="Amount" Property="Foreground" Value="{StaticResource SuccessBrush}" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsNegative}" Value="True">
+                                        <Setter TargetName="Amount" Property="Foreground" Value="{StaticResource DangerBrush}" />
+                                        <Setter TargetName="Bar" Property="Background" Value="{StaticResource DangerBrush}" />
+                                    </DataTrigger>
+                                </DataTemplate.Triggers>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

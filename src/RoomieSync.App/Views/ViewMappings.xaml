@@ -1,0 +1,23 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:vm="clr-namespace:RoomieSync.App.ViewModels"
+                    xmlns:pvm="clr-namespace:RoomieSync.App.ViewModels.Pages"
+                    xmlns:v="clr-namespace:RoomieSync.App.Views"
+                    xmlns:pv="clr-namespace:RoomieSync.App.Views.Pages">
+    
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceDictionary Source="Dialogs/DialogTemplates.xaml" />
+    </ResourceDictionary.MergedDictionaries>
+
+    <DataTemplate DataType="{x:Type vm:LoginViewModel}"><v:LoginView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:CreateHouseholdViewModel}"><v:CreateHouseholdView /></DataTemplate>
+    <DataTemplate DataType="{x:Type vm:ShellViewModel}"><v:ShellView /></DataTemplate>
+
+    <DataTemplate DataType="{x:Type pvm:DashboardViewModel}"><pv:DashboardView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:ExpensesViewModel}"><pv:ExpensesView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:AddExpenseViewModel}"><pv:AddExpenseView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:SettlementsViewModel}"><pv:SettlementsView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:ChoresViewModel}"><pv:ChoresView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:ReportsViewModel}"><pv:ReportsView /></DataTemplate>
+    <DataTemplate DataType="{x:Type pvm:SettingsViewModel}"><pv:SettingsView /></DataTemplate>
+</ResourceDictionary>
