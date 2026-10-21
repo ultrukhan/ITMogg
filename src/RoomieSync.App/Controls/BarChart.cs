@@ -6,7 +6,6 @@ using RoomieSync.App.ViewModels.Items;
 
 namespace RoomieSync.App.Controls;
 
-/// <summary>Стовпчикова діаграма для звітів (витрати по місяцях).</summary>
 public sealed class BarChart : FrameworkElement
 {
     public static readonly DependencyProperty ItemsSourceProperty =
