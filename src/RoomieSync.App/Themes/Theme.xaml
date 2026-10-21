@@ -1,0 +1,73 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Палітра з мокапів. Міняйте кольори тут — вони застосуються в усьому застосунку. -->
+    <Color x:Key="PrimaryColor">#F07B3F</Color>
+    <Color x:Key="PrimaryHoverColor">#E0692C</Color>
+    <Color x:Key="PrimaryLightColor">#FDEFE6</Color>
+    <Color x:Key="BackgroundColor">#FAF6F2</Color>
+    <Color x:Key="SurfaceColor">#FFFFFF</Color>
+    <Color x:Key="SurfaceAltColor">#F8F7F5</Color>
+    <Color x:Key="BorderColor">#EEE9E4</Color>
+    <Color x:Key="TextPrimaryColor">#1E2235</Color>
+    <Color x:Key="TextSecondaryColor">#6F7489</Color>
+    <Color x:Key="TextMutedColor">#A3A8B8</Color>
+    <Color x:Key="SuccessColor">#2E9E5B</Color>
+    <Color x:Key="SuccessLightColor">#E5F5EB</Color>
+    <Color x:Key="DangerColor">#E5484D</Color>
+    <Color x:Key="DangerLightColor">#FDEDED</Color>
+    <Color x:Key="WarningColor">#E9A215</Color>
+    <Color x:Key="WarningLightColor">#FEF5DC</Color>
+    <Color x:Key="InfoColor">#3B82F6</Color>
+    <Color x:Key="InfoLightColor">#EAF2FF</Color>
+    <Color x:Key="PurpleColor">#8B5CF6</Color>
+    <Color x:Key="PurpleLightColor">#F2ECFE</Color>
+    <Color x:Key="NeutralPillColor">#F1F2F5</Color>
+
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="PrimaryLightBrush" Color="{StaticResource PrimaryLightColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="SurfaceAltBrush" Color="{StaticResource SurfaceAltColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="SuccessLightBrush" Color="{StaticResource SuccessLightColor}" />
+    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+    <SolidColorBrush x:Key="DangerLightBrush" Color="{StaticResource DangerLightColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="WarningLightBrush" Color="{StaticResource WarningLightColor}" />
+    <SolidColorBrush x:Key="InfoBrush" Color="{StaticResource InfoColor}" />
+    <SolidColorBrush x:Key="InfoLightBrush" Color="{StaticResource InfoLightColor}" />
+    <SolidColorBrush x:Key="PurpleBrush" Color="{StaticResource PurpleColor}" />
+    <SolidColorBrush x:Key="PurpleLightBrush" Color="{StaticResource PurpleLightColor}" />
+    <SolidColorBrush x:Key="NeutralPillBrush" Color="{StaticResource NeutralPillColor}" />
+    <SolidColorBrush x:Key="OverlayBrush" Color="#661E2235" />
+
+    <LinearGradientBrush x:Key="BalancePositiveBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#34A863" />
+        <GradientStop Offset="1" Color="#278A4F" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="BalanceNegativeBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#EC5B57" />
+        <GradientStop Offset="1" Color="#D23F3F" />
+    </LinearGradientBrush>
+    <LinearGradientBrush x:Key="LoginHeroBrush" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Offset="0" Color="#F6C9A8" />
+        <GradientStop Offset="0.55" Color="#F09A68" />
+        <GradientStop Offset="1" Color="#D9683A" />
+    </LinearGradientBrush>
+
+    <!-- Poppins (OFL) вбудовано як ресурс; якщо його немає — Segoe UI. -->
+    <FontFamily x:Key="AppFont">pack://application:,,,/Assets/Fonts/#Poppins, Segoe UI</FontFamily>
+    <FontFamily x:Key="IconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+
+    <DropShadowEffect x:Key="CardShadow" BlurRadius="18" ShadowDepth="2" Direction="270" Opacity="0.06" Color="#5A3A20" />
+    <DropShadowEffect x:Key="ButtonShadow" BlurRadius="12" ShadowDepth="2" Direction="270" Opacity="0.22" Color="#F07B3F" />
+    <DropShadowEffect x:Key="PopupShadow" BlurRadius="28" ShadowDepth="6" Direction="270" Opacity="0.16" Color="#1E2235" />
+
+    <CornerRadius x:Key="CardRadius">14</CornerRadius>
+    <CornerRadius x:Key="ControlRadius">9</CornerRadius>
+</ResourceDictionary>

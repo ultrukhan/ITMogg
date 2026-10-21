@@ -1,0 +1,297 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=System.Runtime">
+
+    <sys:String x:Key="S.App.Name" xml:space="preserve">RoomieSync</sys:String>
+    <sys:String x:Key="S.App.DataError" xml:space="preserve">Could not initialize the data layer:
+{0}
+
+Check the connection string in appsettings.json or switch Data:Provider to InMemory.</sys:String>
+
+    <sys:String x:Key="S.Common.Cancel" xml:space="preserve">Cancel</sys:String>
+    <sys:String x:Key="S.Common.Close" xml:space="preserve">Close</sys:String>
+    <sys:String x:Key="S.Common.Confirm" xml:space="preserve">Confirm</sys:String>
+    <sys:String x:Key="S.Common.Delete" xml:space="preserve">Delete</sys:String>
+    <sys:String x:Key="S.Common.Edit" xml:space="preserve">Edit</sys:String>
+    <sys:String x:Key="S.Common.Empty" xml:space="preserve"></sys:String>
+    <sys:String x:Key="S.Common.Ok" xml:space="preserve">OK</sys:String>
+    <sys:String x:Key="S.Common.Remove" xml:space="preserve">Remove</sys:String>
+    <sys:String x:Key="S.Common.Save" xml:space="preserve">Save</sys:String>
+
+    <sys:String x:Key="S.Nav.Dashboard" xml:space="preserve">Dashboard</sys:String>
+    <sys:String x:Key="S.Nav.Expenses" xml:space="preserve">Expenses</sys:String>
+    <sys:String x:Key="S.Nav.Settlements" xml:space="preserve">Settlements</sys:String>
+    <sys:String x:Key="S.Nav.Chores" xml:space="preserve">Chores</sys:String>
+    <sys:String x:Key="S.Nav.Reports" xml:space="preserve">Reports</sys:String>
+    <sys:String x:Key="S.Nav.Settings" xml:space="preserve">Settings</sys:String>
+
+    <sys:String x:Key="S.Shell.Members" xml:space="preserve">members</sys:String>
+    <sys:String x:Key="S.Shell.Since" xml:space="preserve">Sharing costs &amp; chores together since {0}</sys:String>
+    <sys:String x:Key="S.Shell.LogOut" xml:space="preserve">Log out</sys:String>
+
+    <sys:String x:Key="S.Role.Admin" xml:space="preserve">Household Admin</sys:String>
+    <sys:String x:Key="S.Role.Member" xml:space="preserve">Roommate</sys:String>
+
+    <sys:String x:Key="S.Notifications.Title" xml:space="preserve">Notifications</sys:String>
+    <sys:String x:Key="S.Notifications.MarkAllRead" xml:space="preserve">Mark all as read</sys:String>
+    <sys:String x:Key="S.Notifications.Empty" xml:space="preserve">You're all caught up.</sys:String>
+
+    <sys:String x:Key="S.Login.HeroTitle" xml:space="preserve">Share the home, share the load.</sys:String>
+    <sys:String x:Key="S.Login.HeroText" xml:space="preserve">Track expenses, split bills fairly, and keep chores organized with everyone under your roof.</sys:String>
+    <sys:String x:Key="S.Login.Title" xml:space="preserve">Welcome Back</sys:String>
+    <sys:String x:Key="S.Login.Subtitle" xml:space="preserve">Sign in to keep your household running smoothly.</sys:String>
+    <sys:String x:Key="S.Login.Email" xml:space="preserve">Email Address</sys:String>
+    <sys:String x:Key="S.Login.EmailPlaceholder" xml:space="preserve">you@example.com</sys:String>
+    <sys:String x:Key="S.Login.Password" xml:space="preserve">Password</sys:String>
+    <sys:String x:Key="S.Login.PasswordPlaceholder" xml:space="preserve">Enter your password</sys:String>
+    <sys:String x:Key="S.Login.ShowPassword" xml:space="preserve">Show / hide password</sys:String>
+    <sys:String x:Key="S.Login.Forgot" xml:space="preserve">Forgot Password?</sys:String>
+    <sys:String x:Key="S.Login.SignIn" xml:space="preserve">Sign In</sys:String>
+    <sys:String x:Key="S.Login.Invalid" xml:space="preserve">Invalid email or password.</sys:String>
+    <sys:String x:Key="S.Login.InvalidWithAttempts" xml:space="preserve">Invalid email or password. {0} attempt(s) left before a 60-second lock.</sys:String>
+    <sys:String x:Key="S.Login.Locked" xml:space="preserve">Account locked for 60 seconds due to 3 failed login attempts. Try again in {0} s.</sys:String>
+    <sys:String x:Key="S.Login.NoAccount" xml:space="preserve">Don't have an account?</sys:String>
+    <sys:String x:Key="S.Login.CreateHousehold" xml:space="preserve">Create Household</sys:String>
+    <sys:String x:Key="S.Login.ForgotTitle" xml:space="preserve">Forgot your password?</sys:String>
+    <sys:String x:Key="S.Login.ForgotMessage" xml:space="preserve">RoomieSync uses local accounts. Ask your household admin to set a new password for you in Settings → Members → Edit.</sys:String>
+    <sys:String x:Key="S.Login.DemoTitle" xml:space="preserve">Demo account</sys:String>
+    <sys:String x:Key="S.Login.DemoFill" xml:space="preserve">Fill in</sys:String>
+
+    <sys:String x:Key="S.Setup.BackToLogin" xml:space="preserve">Back to sign in</sys:String>
+    <sys:String x:Key="S.Setup.Step" xml:space="preserve">Step 1 of 1</sys:String>
+    <sys:String x:Key="S.Setup.Title" xml:space="preserve">Let's set up your household</sys:String>
+    <sys:String x:Key="S.Setup.Subtitle" xml:space="preserve">This will only take a minute</sys:String>
+    <sys:String x:Key="S.Setup.HouseholdName" xml:space="preserve">Household Name</sys:String>
+    <sys:String x:Key="S.Setup.HouseholdPlaceholder" xml:space="preserve">e.g., Cool Flat</sys:String>
+    <sys:String x:Key="S.Setup.YourAccount" xml:space="preserve">Your Account (Admin)</sys:String>
+    <sys:String x:Key="S.Setup.YourAccountHint" xml:space="preserve">You will manage the household. Use this email and password to sign in.</sys:String>
+    <sys:String x:Key="S.Setup.YourName" xml:space="preserve">Your name</sys:String>
+    <sys:String x:Key="S.Setup.Password" xml:space="preserve">Password</sys:String>
+    <sys:String x:Key="S.Setup.ConfirmPassword" xml:space="preserve">Confirm password</sys:String>
+    <sys:String x:Key="S.Setup.AddMembers" xml:space="preserve">Add Members (Local Accounts)</sys:String>
+    <sys:String x:Key="S.Setup.AddMembersHint" xml:space="preserve">Add the people who will share this household. You can invite more later.</sys:String>
+    <sys:String x:Key="S.Setup.MemberName" xml:space="preserve">Member name</sys:String>
+    <sys:String x:Key="S.Setup.AddAnother" xml:space="preserve">Add another member</sys:String>
+    <sys:String x:Key="S.Setup.Complete" xml:space="preserve">Complete Setup</sys:String>
+    <sys:String x:Key="S.Setup.PasswordMismatch" xml:space="preserve">Passwords do not match.</sys:String>
+    <sys:String x:Key="S.Setup.MaxMembers" xml:space="preserve">A household can have at most {0} members (including you).</sys:String>
+
+    <sys:String x:Key="S.Dashboard.Title" xml:space="preserve">Home Sweet Home</sys:String>
+    <sys:String x:Key="S.Dashboard.Caption" xml:space="preserve">Welcome back to</sys:String>
+    <sys:String x:Key="S.Dashboard.MyBalance" xml:space="preserve">My Current Balance</sys:String>
+    <sys:String x:Key="S.Dashboard.YouAreOwed" xml:space="preserve">You are owed money overall</sys:String>
+    <sys:String x:Key="S.Dashboard.YouOwe" xml:space="preserve">You owe money overall</sys:String>
+    <sys:String x:Key="S.Dashboard.AllSettled" xml:space="preserve">You are all settled up</sys:String>
+    <sys:String x:Key="S.Dashboard.TotalExpenses" xml:space="preserve">Total Household Expenses (this month)</sys:String>
+    <sys:String x:Key="S.Dashboard.VsLastMonth" xml:space="preserve">{0}% vs last month</sys:String>
+    <sys:String x:Key="S.Dashboard.ByCategory" xml:space="preserve">Expenses by Category</sys:String>
+    <sys:String x:Key="S.Dashboard.ThisMonth" xml:space="preserve">This month</sys:String>
+    <sys:String x:Key="S.Dashboard.NoExpenses" xml:space="preserve">No expenses yet</sys:String>
+    <sys:String x:Key="S.Dashboard.Recent" xml:space="preserve">Recent Expenses</sys:String>
+    <sys:String x:Key="S.Dashboard.ViewAll" xml:space="preserve">View all</sys:String>
+    <sys:String x:Key="S.Dashboard.ActiveChores" xml:space="preserve">Active Chores</sys:String>
+    <sys:String x:Key="S.Dashboard.AddChore" xml:space="preserve">Add Chore</sys:String>
+    <sys:String x:Key="S.Dashboard.OpenBoard" xml:space="preserve">Open board</sys:String>
+
+    <sys:String x:Key="S.Date.Today" xml:space="preserve">Today</sys:String>
+    <sys:String x:Key="S.Date.Yesterday" xml:space="preserve">Yesterday</sys:String>
+    <sys:String x:Key="S.Date.Tomorrow" xml:space="preserve">Tomorrow</sys:String>
+    <sys:String x:Key="S.Date.TodayAt" xml:space="preserve">Today, {0}</sys:String>
+    <sys:String x:Key="S.Date.DaysAgo" xml:space="preserve">{0} days ago</sys:String>
+    <sys:String x:Key="S.Date.HoursAgo" xml:space="preserve">{0} h ago</sys:String>
+    <sys:String x:Key="S.Date.MinutesAgo" xml:space="preserve">{0} min ago</sys:String>
+    <sys:String x:Key="S.Date.JustNow" xml:space="preserve">Just now</sys:String>
+
+    <sys:String x:Key="S.Expense.PaidBy" xml:space="preserve">Paid by {0}</sys:String>
+
+    <sys:String x:Key="S.Category.Rent" xml:space="preserve">Rent</sys:String>
+    <sys:String x:Key="S.Category.Groceries" xml:space="preserve">Groceries</sys:String>
+    <sys:String x:Key="S.Category.Utilities" xml:space="preserve">Utilities</sys:String>
+    <sys:String x:Key="S.Category.Entertainment" xml:space="preserve">Entertainment</sys:String>
+    <sys:String x:Key="S.Category.Other" xml:space="preserve">Other</sys:String>
+
+    <sys:String x:Key="S.Expenses.Title" xml:space="preserve">All Expenses</sys:String>
+    <sys:String x:Key="S.Expenses.Caption" xml:space="preserve">Transaction History</sys:String>
+    <sys:String x:Key="S.Expenses.Subtitle" xml:space="preserve">A complete record of every shared purchase.</sys:String>
+    <sys:String x:Key="S.Expenses.Total" xml:space="preserve">Total:</sys:String>
+    <sys:String x:Key="S.Expenses.Add" xml:space="preserve">Add Expense</sys:String>
+    <sys:String x:Key="S.Expenses.Search" xml:space="preserve">Search expenses...</sys:String>
+    <sys:String x:Key="S.Expenses.FilterDate" xml:space="preserve">Filter by Date</sys:String>
+    <sys:String x:Key="S.Expenses.FilterPerson" xml:space="preserve">Filter by Person</sys:String>
+    <sys:String x:Key="S.Expenses.FilterCategory" xml:space="preserve">Category</sys:String>
+    <sys:String x:Key="S.Expenses.Date.AllTime" xml:space="preserve">All time</sys:String>
+    <sys:String x:Key="S.Expenses.Date.ThisMonth" xml:space="preserve">This month</sys:String>
+    <sys:String x:Key="S.Expenses.Date.Last30Days" xml:space="preserve">Last 30 days</sys:String>
+    <sys:String x:Key="S.Expenses.Date.Last3Months" xml:space="preserve">Last 3 months</sys:String>
+    <sys:String x:Key="S.Expenses.Everyone" xml:space="preserve">Everyone</sys:String>
+    <sys:String x:Key="S.Expenses.AllCategories" xml:space="preserve">All categories</sys:String>
+    <sys:String x:Key="S.Expenses.ColDate" xml:space="preserve">DATE</sys:String>
+    <sys:String x:Key="S.Expenses.ColDescription" xml:space="preserve">EXPENSE DESCRIPTION</sys:String>
+    <sys:String x:Key="S.Expenses.ColPaidBy" xml:space="preserve">PAID BY</sys:String>
+    <sys:String x:Key="S.Expenses.ColTotal" xml:space="preserve">TOTAL AMOUNT</sys:String>
+    <sys:String x:Key="S.Expenses.ColShare" xml:space="preserve">YOUR SHARE</sys:String>
+    <sys:String x:Key="S.Expenses.ColActions" xml:space="preserve">ACTIONS</sys:String>
+    <sys:String x:Key="S.Expenses.Empty" xml:space="preserve">No expenses match your filters.</sys:String>
+    <sys:String x:Key="S.Expenses.Showing" xml:space="preserve">Showing {0}–{1} of {2} expenses</sys:String>
+    <sys:String x:Key="S.Expenses.Details" xml:space="preserve">Expense details</sys:String>
+    <sys:String x:Key="S.Expenses.SplitBetween" xml:space="preserve">Split between</sys:String>
+    <sys:String x:Key="S.Expenses.HasReceipt" xml:space="preserve">Receipt photo attached</sys:String>
+    <sys:String x:Key="S.Expenses.DeleteTitle" xml:space="preserve">Delete expense?</sys:String>
+    <sys:String x:Key="S.Expenses.DeleteMessage" xml:space="preserve">"{0}" will be removed and all balances will be recalculated.</sys:String>
+    <sys:String x:Key="S.Expenses.Deleted" xml:space="preserve">Expense deleted</sys:String>
+
+    <sys:String x:Key="S.Export.Csv" xml:space="preserve">Export to CSV</sys:String>
+    <sys:String x:Key="S.Export.Pdf" xml:space="preserve">Export to PDF</sys:String>
+    <sys:String x:Key="S.Export.Saved" xml:space="preserve">Saved {0}</sys:String>
+
+    <sys:String x:Key="S.AddExpense.Title" xml:space="preserve">Add New Expense</sys:String>
+    <sys:String x:Key="S.AddExpense.Caption" xml:space="preserve">Expenses</sys:String>
+    <sys:String x:Key="S.AddExpense.DetailsTitle" xml:space="preserve">Expense Details</sys:String>
+    <sys:String x:Key="S.AddExpense.DetailsSubtitle" xml:space="preserve">Log a new shared cost and split it with your household</sys:String>
+    <sys:String x:Key="S.AddExpense.Manual" xml:space="preserve">Manual Entry</sys:String>
+    <sys:String x:Key="S.AddExpense.Scan" xml:space="preserve">Scan Receipt</sys:String>
+    <sys:String x:Key="S.AddExpense.FieldTitle" xml:space="preserve">Expense Title / Description</sys:String>
+    <sys:String x:Key="S.AddExpense.TitlePlaceholder" xml:space="preserve">e.g. Weekly Groceries</sys:String>
+    <sys:String x:Key="S.AddExpense.FieldAmount" xml:space="preserve">Total Amount</sys:String>
+    <sys:String x:Key="S.AddExpense.FieldDate" xml:space="preserve">Date</sys:String>
+    <sys:String x:Key="S.AddExpense.FieldCategory" xml:space="preserve">Category</sys:String>
+    <sys:String x:Key="S.AddExpense.FieldPaidBy" xml:space="preserve">Paid by</sys:String>
+    <sys:String x:Key="S.AddExpense.UploadTitle" xml:space="preserve">Upload Receipt Photo</sys:String>
+    <sys:String x:Key="S.AddExpense.PoweredByGemini" xml:space="preserve">Powered by Gemini API</sys:String>
+    <sys:String x:Key="S.AddExpense.DropHere" xml:space="preserve">Drop your receipt here, or</sys:String>
+    <sys:String x:Key="S.AddExpense.Browse" xml:space="preserve">browse</sys:String>
+    <sys:String x:Key="S.AddExpense.DropHint" xml:space="preserve">PNG, JPG or PDF — Gemini will auto-extract amount &amp; items</sys:String>
+    <sys:String x:Key="S.AddExpense.Recognizing" xml:space="preserve">Recognizing with Gemini…</sys:String>
+    <sys:String x:Key="S.AddExpense.Recognized" xml:space="preserve">Recognized — please review the data</sys:String>
+    <sys:String x:Key="S.AddExpense.ScanFailed" xml:space="preserve">We couldn't recognize this receipt.</sys:String>
+    <sys:String x:Key="S.AddExpense.ScanTimeout" xml:space="preserve">Receipt recognition took longer than 5 seconds.</sys:String>
+    <sys:String x:Key="S.AddExpense.EnterManually" xml:space="preserve">Please enter the details manually.</sys:String>
+    <sys:String x:Key="S.AddExpense.ReviewTitle" xml:space="preserve">Review recognized data</sys:String>
+    <sys:String x:Key="S.AddExpense.ReviewSubtitle" xml:space="preserve">Check the fields extracted from the receipt and fix anything that looks wrong.</sys:String>
+    <sys:String x:Key="S.AddExpense.Items" xml:space="preserve">Items on receipt</sys:String>
+    <sys:String x:Key="S.AddExpense.SplitTitle" xml:space="preserve">Split with household</sys:String>
+    <sys:String x:Key="S.AddExpense.You" xml:space="preserve">You</sys:String>
+    <sys:String x:Key="S.AddExpense.Roommate" xml:space="preserve">Roommate</sys:String>
+    <sys:String x:Key="S.AddExpense.PeopleSelected" xml:space="preserve">{0} people selected</sys:String>
+    <sys:String x:Key="S.AddExpense.TotalSplit" xml:space="preserve">Total split:</sys:String>
+    <sys:String x:Key="S.AddExpense.HintEqually" xml:space="preserve">Switch to "By Percentage" or "By Exact Amount" to manually enter each person's share instead of splitting the total equally.</sys:String>
+    <sys:String x:Key="S.AddExpense.HintPercentage" xml:space="preserve">Enter each person's percentage. The percentages must add up to 100%.</sys:String>
+    <sys:String x:Key="S.AddExpense.HintExact" xml:space="preserve">Enter the exact amount each person owes. The amounts must add up to the total.</sys:String>
+    <sys:String x:Key="S.AddExpense.Save" xml:space="preserve">Save Expense</sys:String>
+    <sys:String x:Key="S.AddExpense.Saved" xml:space="preserve">Expense saved — {0}. Balances updated.</sys:String>
+    <sys:String x:Key="S.AddExpense.InvalidAmount" xml:space="preserve">Enter a valid amount, e.g. 64.65.</sys:String>
+
+    <sys:String x:Key="S.Split.Equally" xml:space="preserve">Equally</sys:String>
+    <sys:String x:Key="S.Split.ByPercentage" xml:space="preserve">By Percentage</sys:String>
+    <sys:String x:Key="S.Split.ByExactAmount" xml:space="preserve">By Exact Amount</sys:String>
+
+    <sys:String x:Key="S.Settlements.Title" xml:space="preserve">Settlement Plan</sys:String>
+    <sys:String x:Key="S.Settlements.Caption" xml:space="preserve">Settlements</sys:String>
+    <sys:String x:Key="S.Settlements.TotalTransfers" xml:space="preserve">Total Transfers</sys:String>
+    <sys:String x:Key="S.Settlements.TotalAmount" xml:space="preserve">Total Amount to Settle</sys:String>
+    <sys:String x:Key="S.Settlements.Saved" xml:space="preserve">Transfers Saved</sys:String>
+    <sys:String x:Key="S.Settlements.FewerFormat" xml:space="preserve">{0} fewer</sys:String>
+    <sys:String x:Key="S.Settlements.Optimized" xml:space="preserve">Debts are optimized to minimize the number of transfers.</sys:String>
+    <sys:String x:Key="S.Settlements.Owes" xml:space="preserve">owes</sys:String>
+    <sys:String x:Key="S.Settlements.SettleUp" xml:space="preserve">Settle Up</sys:String>
+    <sys:String x:Key="S.Settlements.ConfirmTitle" xml:space="preserve">Mark as paid?</sys:String>
+    <sys:String x:Key="S.Settlements.ConfirmMessage" xml:space="preserve">Confirm that {0} paid {1} to {2} outside the app (cash or bank transfer).</sys:String>
+    <sys:String x:Key="S.Settlements.MarkPaid" xml:space="preserve">Mark as paid</sys:String>
+    <sys:String x:Key="S.Settlements.Recorded" xml:space="preserve">Payment from {0} to {1} recorded</sys:String>
+    <sys:String x:Key="S.Settlements.AllDoneTitle" xml:space="preserve">All settled up!</sys:String>
+    <sys:String x:Key="S.Settlements.AllDoneMessage" xml:space="preserve">Nobody owes anything right now.</sys:String>
+    <sys:String x:Key="S.Settlements.Balances" xml:space="preserve">Member Balances</sys:String>
+    <sys:String x:Key="S.Settlements.BalancesHint" xml:space="preserve">Positive — the household owes this person; negative — this person owes the household.</sys:String>
+
+    <sys:String x:Key="S.Balance.IsOwed" xml:space="preserve">Is owed</sys:String>
+    <sys:String x:Key="S.Balance.Owes" xml:space="preserve">Owes</sys:String>
+    <sys:String x:Key="S.Balance.SettledUp" xml:space="preserve">Settled up</sys:String>
+
+    <sys:String x:Key="S.Chores.Title" xml:space="preserve">Household Chores</sys:String>
+    <sys:String x:Key="S.Chores.Caption" xml:space="preserve">Chores</sys:String>
+    <sys:String x:Key="S.Chores.CreateTask" xml:space="preserve">Create New Task</sys:String>
+    <sys:String x:Key="S.Chores.NewTask" xml:space="preserve">New Task</sys:String>
+    <sys:String x:Key="S.Chores.EditTask" xml:space="preserve">Edit Task</sys:String>
+    <sys:String x:Key="S.Chores.TaskName" xml:space="preserve">Task Name</sys:String>
+    <sys:String x:Key="S.Chores.TaskPlaceholder" xml:space="preserve">e.g. Clean Kitchen</sys:String>
+    <sys:String x:Key="S.Chores.AssignedTo" xml:space="preserve">Assigned To</sys:String>
+    <sys:String x:Key="S.Chores.Deadline" xml:space="preserve">Deadline</sys:String>
+    <sys:String x:Key="S.Chores.Time" xml:space="preserve">Time</sys:String>
+    <sys:String x:Key="S.Chores.Status" xml:space="preserve">Status</sys:String>
+    <sys:String x:Key="S.Chores.Rotation" xml:space="preserve">Rotation</sys:String>
+    <sys:String x:Key="S.Chores.RotationHint" xml:space="preserve">When a rotating task is marked Done, the next one is created automatically for the next roommate.</sys:String>
+    <sys:String x:Key="S.Chores.ChangeAssignee" xml:space="preserve">Change Assignee</sys:String>
+    <sys:String x:Key="S.Chores.WhoShouldDo" xml:space="preserve">Who should do</sys:String>
+    <sys:String x:Key="S.Chores.Unassigned" xml:space="preserve">Unassigned</sys:String>
+    <sys:String x:Key="S.Chores.NoDeadline" xml:space="preserve">No deadline</sys:String>
+    <sys:String x:Key="S.Chores.EmptyColumn" xml:space="preserve">Nothing here</sys:String>
+    <sys:String x:Key="S.Chores.NoActive" xml:space="preserve">No active chores — nice!</sys:String>
+    <sys:String x:Key="S.Chores.HintStart" xml:space="preserve">Click to start (In Progress)</sys:String>
+    <sys:String x:Key="S.Chores.HintDone" xml:space="preserve">Click to mark as Done</sys:String>
+    <sys:String x:Key="S.Chores.HintReopen" xml:space="preserve">Click to reopen</sys:String>
+    <sys:String x:Key="S.Chores.Created" xml:space="preserve">Task created</sys:String>
+    <sys:String x:Key="S.Chores.Deleted" xml:space="preserve">Task deleted</sys:String>
+    <sys:String x:Key="S.Chores.Reassigned" xml:space="preserve">Assigned to {0}</sys:String>
+    <sys:String x:Key="S.Chores.MarkedDone" xml:space="preserve">Marked as done</sys:String>
+    <sys:String x:Key="S.Chores.MarkedDoneRotated" xml:space="preserve">Marked as done — next turn created</sys:String>
+    <sys:String x:Key="S.Chores.RotatedTo" xml:space="preserve">Done! Next turn goes to {0}</sys:String>
+    <sys:String x:Key="S.Chores.DeleteTitle" xml:space="preserve">Delete task?</sys:String>
+    <sys:String x:Key="S.Chores.DeleteMessage" xml:space="preserve">"{0}" will be removed from the board.</sys:String>
+    <sys:String x:Key="S.Chores.TitleRequired" xml:space="preserve">Task name is required.</sys:String>
+
+    <sys:String x:Key="S.Status.ToDo" xml:space="preserve">To Do</sys:String>
+    <sys:String x:Key="S.Status.InProgress" xml:space="preserve">In Progress</sys:String>
+    <sys:String x:Key="S.Status.Done" xml:space="preserve">Done</sys:String>
+
+    <sys:String x:Key="S.Rotation.None" xml:space="preserve">No rotation</sys:String>
+    <sys:String x:Key="S.Rotation.Daily" xml:space="preserve">Daily rotation</sys:String>
+    <sys:String x:Key="S.Rotation.Weekly" xml:space="preserve">Weekly rotation</sys:String>
+    <sys:String x:Key="S.Rotation.Monthly" xml:space="preserve">Monthly rotation</sys:String>
+
+    <sys:String x:Key="S.Reports.Title" xml:space="preserve">Reports</sys:String>
+    <sys:String x:Key="S.Reports.Caption" xml:space="preserve">Insights</sys:String>
+    <sys:String x:Key="S.Reports.Period.ThisMonth" xml:space="preserve">This month</sys:String>
+    <sys:String x:Key="S.Reports.Period.Last3Months" xml:space="preserve">Last 3 months</sys:String>
+    <sys:String x:Key="S.Reports.Period.Last6Months" xml:space="preserve">Last 6 months</sys:String>
+    <sys:String x:Key="S.Reports.Period.ThisYear" xml:space="preserve">This year</sys:String>
+    <sys:String x:Key="S.Reports.TotalSpent" xml:space="preserve">Total Spent</sys:String>
+    <sys:String x:Key="S.Reports.MonthlyAverage" xml:space="preserve">Monthly Average</sys:String>
+    <sys:String x:Key="S.Reports.ExpenseCount" xml:space="preserve">Expenses</sys:String>
+    <sys:String x:Key="S.Reports.TopCategory" xml:space="preserve">Top Category</sys:String>
+    <sys:String x:Key="S.Reports.ByMonth" xml:space="preserve">Spending by Month</sys:String>
+    <sys:String x:Key="S.Reports.ByMember" xml:space="preserve">Paid vs. Share by Member</sys:String>
+    <sys:String x:Key="S.Reports.Member" xml:space="preserve">MEMBER</sys:String>
+    <sys:String x:Key="S.Reports.Paid" xml:space="preserve">PAID</sys:String>
+    <sys:String x:Key="S.Reports.Share" xml:space="preserve">SHARE</sys:String>
+    <sys:String x:Key="S.Reports.Net" xml:space="preserve">NET</sys:String>
+
+    <sys:String x:Key="S.Settings.Title" xml:space="preserve">Household Settings</sys:String>
+    <sys:String x:Key="S.Settings.Caption" xml:space="preserve">Settings</sys:String>
+    <sys:String x:Key="S.Settings.AdminOnly" xml:space="preserve">Only the household admin can change these settings.</sys:String>
+    <sys:String x:Key="S.Settings.HouseholdInfo" xml:space="preserve">Household Info</sys:String>
+    <sys:String x:Key="S.Settings.SaveChanges" xml:space="preserve">Save Changes</sys:String>
+    <sys:String x:Key="S.Settings.Saved" xml:space="preserve">Household info saved</sys:String>
+    <sys:String x:Key="S.Settings.Members" xml:space="preserve">Members</sys:String>
+    <sys:String x:Key="S.Settings.MemberLimit" xml:space="preserve">{0} of {1} members</sys:String>
+    <sys:String x:Key="S.Settings.You" xml:space="preserve">(you)</sys:String>
+    <sys:String x:Key="S.Settings.NoLogin" xml:space="preserve">No login yet</sys:String>
+    <sys:String x:Key="S.Settings.EditName" xml:space="preserve">Edit Name</sys:String>
+    <sys:String x:Key="S.Settings.DeleteProfile" xml:space="preserve">Delete Profile</sys:String>
+    <sys:String x:Key="S.Settings.CannotDelete" xml:space="preserve">Cannot delete member with active debts</sys:String>
+    <sys:String x:Key="S.Settings.InviteMember" xml:space="preserve">Invite New Member</sys:String>
+    <sys:String x:Key="S.Settings.MemberPlaceholder" xml:space="preserve">Enter member name</sys:String>
+    <sys:String x:Key="S.Settings.AddMember" xml:space="preserve">Add New Member</sys:String>
+    <sys:String x:Key="S.Settings.AddMemberHint" xml:space="preserve">New members get a profile right away. Use Edit Name to give them an email and password so they can sign in.</sys:String>
+    <sys:String x:Key="S.Settings.MemberAdded" xml:space="preserve">{0} added to the household</sys:String>
+    <sys:String x:Key="S.Settings.MemberUpdated" xml:space="preserve">Member updated</sys:String>
+    <sys:String x:Key="S.Settings.MemberDeleted" xml:space="preserve">{0} removed</sys:String>
+    <sys:String x:Key="S.Settings.DeleteTitle" xml:space="preserve">Delete profile?</sys:String>
+    <sys:String x:Key="S.Settings.DeleteMessage" xml:space="preserve">{0} will be removed from the household. Their past expenses stay in the history.</sys:String>
+    <sys:String x:Key="S.Settings.EditMember" xml:space="preserve">Edit Member</sys:String>
+    <sys:String x:Key="S.Settings.Name" xml:space="preserve">Name</sys:String>
+    <sys:String x:Key="S.Settings.LoginTitle" xml:space="preserve">Sign-in (optional)</sys:String>
+    <sys:String x:Key="S.Settings.LoginHint" xml:space="preserve">Set an email and a password so this roommate can sign in. Leave the password empty to keep the current one.</sys:String>
+    <sys:String x:Key="S.Settings.NewPassword" xml:space="preserve">New password (min. 6 characters)</sys:String>
+    <sys:String x:Key="S.Settings.EmailRequired" xml:space="preserve">Enter an email to enable sign-in.</sys:String>
+    <sys:String x:Key="S.Settings.PasswordRequired" xml:space="preserve">Enter a password to save sign-in details.</sys:String>
+</ResourceDictionary>
