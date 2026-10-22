@@ -5,11 +5,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Chores;
 
-/// <summary>
-/// Обов'язки та автоматична ротація (бекенд 2).
-/// Коли завдання з ротацією позначено Done, створюється нове завдання з тією ж назвою
-/// для наступного учасника (за порядком приєднання) з дедлайном, зсунутим на період ротації.
-/// </summary>
 public sealed class ChoreService(
     IChoreRepository chores,
     IMemberRepository members,
@@ -61,7 +56,6 @@ public sealed class ChoreService(
 
         if (status != ChoreStatus.Done || wasDone || chore.Rotation == ChoreRotation.None) return null;
 
-        // Автоматична ротація
         var list = await members.GetByHouseholdAsync(chore.HouseholdId, false, ct);
         var next = new Chore
         {
@@ -84,7 +78,7 @@ public sealed class ChoreService(
         var active = memberList.Where(m => m.IsActive).OrderBy(m => m.JoinedAt).ToList();
         if (active.Count == 0) return null;
         var i = active.FindIndex(m => m.Id == currentAssignee);
-        return active[(i + 1) % active.Count].Id; // i = -1 → перший учасник
+        return active[(i + 1) % active.Count].Id; 
     }
 
     internal DateTime NextDeadline(DateTime from, ChoreRotation rotation)
@@ -96,7 +90,6 @@ public sealed class ChoreService(
             ChoreRotation.Monthly => from.AddMonths(1),
             _ => from
         };
-        // Якщо завдання закрили із запізненням, наступний дедлайн не повинен бути вже в минулому.
         while (next < clock.Now && rotation != ChoreRotation.None)
             next = NextDeadline(next, rotation);
         return next;

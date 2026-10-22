@@ -105,7 +105,6 @@ public sealed class ExpenseService(
         var requiredIds = expense.RequiredApprovers;
         var isInitiation = expense.DeleteApprovedBy.Count == 0;
 
-        // Звичайний учасник не може сам ініціювати видалення чужої витрати (зокрема витрати власника)
         if (isInitiation && expense.PaidByMemberId != currentMemberId && !actor.IsAdmin)
             throw new DomainException("Only the person who paid for this expense (or the household admin) can initiate its deletion.");
 
