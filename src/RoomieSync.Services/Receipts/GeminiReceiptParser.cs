@@ -6,11 +6,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
 
-/// <summary>
-/// Розпізнавання чека через Gemini API (фронтенд 2 / ШІ-інтеграція).
-/// Надсилає зображення в generateContent і просить відповідь строго у JSON.
-/// Таймаут 5 с → ReceiptParseException(IsTimeout = true), UI перемикається на ручне введення.
-/// </summary>
 public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) : IReceiptParser
 {
     private const string Prompt = """

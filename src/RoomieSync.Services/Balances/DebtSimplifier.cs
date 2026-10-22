@@ -4,11 +4,7 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Balances;
 
-/// <summary>
-/// Алгоритм спрощення боргів (бекенд 1).
-/// Жадібно зводить найбільшого боржника з найбільшим кредитором; дає не більше ніж (n − 1) переказів.
-/// Рахує в центах, щоб уникнути похибок округлення. Складність O(n log n) на крок, n ≤ 6.
-/// </summary>
+
 public sealed class DebtSimplifier : IDebtSimplifier
 {
     public IReadOnlyList<Transfer> Simplify(IEnumerable<MemberBalance> balances)

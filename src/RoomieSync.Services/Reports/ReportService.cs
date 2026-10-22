@@ -4,10 +4,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Reports;
 
-/// <summary>
-/// Сервіс агрегації даних для звітів і графіків (Бекенд 1 — Уляна Трухан).
-/// Отримує готову статистику з БД (IReportRepository) без перевантаження пам'яті клієнта.
-/// </summary>
 public sealed class ReportService(IReportRepository reports) : IReportService
 {
     public async Task<HouseholdReportSummary> GetPeriodSummaryAsync(Guid householdId, DateTime from, DateTime to, CancellationToken ct = default)

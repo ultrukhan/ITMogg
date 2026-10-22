@@ -4,7 +4,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Notifications;
 
-/// <summary>Внутрішні сповіщення (фронтенд 1 показує їх у дзвіночку в шапці).</summary>
 public sealed class NotificationService(
     INotificationRepository notifications,
     IMemberRepository members,
@@ -35,7 +34,6 @@ public sealed class NotificationService(
         NotificationsChanged?.Invoke(this, EventArgs.Empty);
     }
 
-    /// <summary>Створює сповіщення про протерміновані завдання (один раз на завдання для кожного учасника).</summary>
     public async Task CheckOverdueChoresAsync(Guid householdId, CancellationToken ct = default)
     {
         var now = clock.Now;
