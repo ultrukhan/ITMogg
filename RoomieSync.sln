@@ -1,0 +1,57 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{9BF25659-E1E8-4630-A969-379B8DEA5FBF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomieSync.Core", "src\RoomieSync.Core\RoomieSync.Core.csproj", "{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomieSync.Data", "src\RoomieSync.Data\RoomieSync.Data.csproj", "{A685A207-B3C9-4579-9A95-643D0454BFCE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomieSync.Services", "src\RoomieSync.Services\RoomieSync.Services.csproj", "{FF3BDE61-0138-4010-A2F0-9584ED1F8357}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomieSync.App", "src\RoomieSync.App\RoomieSync.App.csproj", "{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{EBB0640C-960D-4530-8882-C61F457BD172}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RoomieSync.Tests", "tests\RoomieSync.Tests\RoomieSync.Tests.csproj", "{4E63BA1A-B924-4531-8A0D-952EABE29703}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A685A207-B3C9-4579-9A95-643D0454BFCE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A685A207-B3C9-4579-9A95-643D0454BFCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A685A207-B3C9-4579-9A95-643D0454BFCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A685A207-B3C9-4579-9A95-643D0454BFCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FF3BDE61-0138-4010-A2F0-9584ED1F8357}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FF3BDE61-0138-4010-A2F0-9584ED1F8357}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FF3BDE61-0138-4010-A2F0-9584ED1F8357}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FF3BDE61-0138-4010-A2F0-9584ED1F8357}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4E63BA1A-B924-4531-8A0D-952EABE29703}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4E63BA1A-B924-4531-8A0D-952EABE29703}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4E63BA1A-B924-4531-8A0D-952EABE29703}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4E63BA1A-B924-4531-8A0D-952EABE29703}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{4B4BCBA1-E29E-4C31-BF1C-230F2F5D1CE5} = {9BF25659-E1E8-4630-A969-379B8DEA5FBF}
+		{A685A207-B3C9-4579-9A95-643D0454BFCE} = {9BF25659-E1E8-4630-A969-379B8DEA5FBF}
+		{FF3BDE61-0138-4010-A2F0-9584ED1F8357} = {9BF25659-E1E8-4630-A969-379B8DEA5FBF}
+		{6EE1E1E8-B22B-4D81-940B-EB0A54D5119F} = {9BF25659-E1E8-4630-A969-379B8DEA5FBF}
+		{4E63BA1A-B924-4531-8A0D-952EABE29703} = {EBB0640C-960D-4530-8882-C61F457BD172}
+	EndGlobalSection
+EndGlobal
