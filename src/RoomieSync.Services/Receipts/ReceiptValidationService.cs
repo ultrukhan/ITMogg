@@ -4,7 +4,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
 
-/// <summary>Перевірка розпізнаних даних: сума позицій ≈ загальна сума, дата коректна.</summary>
 public sealed class ReceiptValidationService(IClock clock) : IValidationService
 {
     public ValidationResult ValidateReceipt(ParsedReceipt receipt)
