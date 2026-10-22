@@ -40,3 +40,4 @@ jobs:
         with:
           name: coverage-report
           path: ./TestResults/**/coverage.cobertura.xml
+          
