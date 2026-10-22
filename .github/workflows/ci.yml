@@ -1,29 +1,42 @@
-name: Build and Test CI
+name: RoomieSync CI & Quality Gate
 
 on:
   push:
-    branches: [ "main", "feature/*" ]
+    branches: [ main, develop, "**" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ main, develop ]
 
 jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
+  build-test-quality:
+    name: Build, Test & Code Quality
+    runs-on: windows-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '8.0.x' # Або 7.0.x / 6.0.x залежно від вашої версії SDK
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore
+      - name: Restore dependencies
+        run: dotnet restore RoomieSync.sln
 
-    - name: Build project
-      run: dotnet build --no-restore --configuration Release
+      - name: Build solution (Quality Gate - Warnings & Analyzers)
+        run: dotnet build RoomieSync.sln --configuration Release --no-restore
 
-    - name: Run unit tests
-      run: dotnet test --no-build --verbosity normal
+      - name: Run Unit & NFR Tests with Code Coverage
+        run: >
+          dotnet test tests/RoomieSync.Tests/RoomieSync.Tests.csproj
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./TestResults/**/coverage.cobertura.xml
