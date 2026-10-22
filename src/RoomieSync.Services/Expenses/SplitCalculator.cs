@@ -4,10 +4,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Expenses;
 
-/// <summary>
-/// Розподіл суми між учасниками (бекенд 2). Рахує в центах, щоб сума часток
-/// завжди точно дорівнювала загальній сумі (залишок від округлення отримують перші учасники).
-/// </summary>
 public static class SplitCalculator
 {
     public static IReadOnlyList<ExpenseShare> Calculate(decimal amount, SplitMethod method, IReadOnlyList<ShareInput> inputs)
@@ -31,7 +27,6 @@ public static class SplitCalculator
             {
                 var cents = inputs.Select(s => (long)Math.Floor(totalCents * s.Value / 100m)).ToArray();
                 var percentSum = inputs.Sum(s => s.Value);
-                // Якщо відсотки дають 100%, роздаємо залишок центів, щоб сума збіглася до цента.
                 if (Math.Abs(percentSum - 100m) < 0.001m)
                 {
                     var diff = totalCents - cents.Sum();

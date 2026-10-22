@@ -3,11 +3,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
 
-/// <summary>
-/// Мок розпізнавання для демо без ключа Gemini.
-/// Підказка для демонстрації сценаріїв: файл, у назві якого є "fail" — помилка, "slow" — таймаут (5 с),
-/// "warn" — дані з розбіжністю суми (показ попереджень у формі перевірки).
-/// </summary>
 public sealed class MockReceiptParser(GeminiOptions options, IClock clock) : IReceiptParser
 {
     public async Task<ParsedReceipt> ParseReceiptAsync(byte[] image, string mimeType, string? fileName = null, CancellationToken ct = default)
