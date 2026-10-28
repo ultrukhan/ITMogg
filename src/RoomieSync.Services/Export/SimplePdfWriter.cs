@@ -3,9 +3,6 @@ using System.Text;
 
 namespace RoomieSync.Services.Export;
 
-/// <summary>
-/// Генератор PDF із підтримкою української кирилиці (CP1251 + системний TrueType шрифт Arial та таблиця гліфів Adobe).
-/// </summary>
 internal sealed class SimplePdfWriter
 {
     private const float PageWidth = 595, PageHeight = 842, Margin = 50;
@@ -13,7 +10,6 @@ internal sealed class SimplePdfWriter
     private StringBuilder _page = null!;
     private float _y;
 
-    // Відповідність символів кирилиці кодам CP1251 (128..255) для PDF Differences
     private static readonly Dictionary<char, byte> CyrillicToByte = BuildCyrillicMap();
 
     private const string CyrillicEncodingObj = """
@@ -89,7 +85,7 @@ internal sealed class SimplePdfWriter
         var objects = new List<string>
         {
             "<< /Type /Catalog /Pages 2 0 R >>",
-            "", // pages — заповнюється нижче
+            "",
             "<< /Type /Font /Subtype /TrueType /BaseFont /Arial /Encoding 5 0 R >>",
             "<< /Type /Font /Subtype /TrueType /BaseFont /Arial,Bold /Encoding 5 0 R >>",
             CyrillicEncodingObj
@@ -127,7 +123,7 @@ internal sealed class SimplePdfWriter
             .Replace("₴", "UAH ")
             .Replace("€", "EUR ")
             .Replace("£", "GBP ")
-            .Replace("zł", "PLN")
+            .Replace("zł", "PLN ")
             .Replace("—", "-")
             .Replace("–", "-")
             .Replace("·", "-")
@@ -146,7 +142,6 @@ internal sealed class SimplePdfWriter
             }
             else if (CyrillicToByte.TryGetValue(ch, out var b))
             {
-                // Записуємо вісімковий код CP1251 для коректного відображення кирилиці в PDF
                 sb.Append('\\').Append(Convert.ToString(b, 8).PadLeft(3, '0'));
             }
             else if (ch <= 255)
@@ -159,27 +154,77 @@ internal sealed class SimplePdfWriter
 
     private static Dictionary<char, byte> BuildCyrillicMap()
     {
-        var d = new Dictionary<char, byte>
+        return new Dictionary<char, byte>
         {
+            ['А'] = 192,
+            ['Б'] = 193,
+            ['В'] = 194,
+            ['Г'] = 195,
             ['Ґ'] = 165,
-            ['ґ'] = 180,
+            ['Д'] = 196,
+            ['Е'] = 197,
             ['Є'] = 170,
-            ['є'] = 186,
+            ['Ж'] = 198,
+            ['З'] = 199,
+            ['И'] = 200,
             ['І'] = 178,
-            ['і'] = 179,
             ['Ї'] = 175,
+            ['Й'] = 201,
+            ['К'] = 202,
+            ['Л'] = 203,
+            ['М'] = 204,
+            ['Н'] = 205,
+            ['О'] = 206,
+            ['П'] = 207,
+            ['Р'] = 208,
+            ['С'] = 209,
+            ['Т'] = 210,
+            ['У'] = 211,
+            ['Ф'] = 212,
+            ['Х'] = 213,
+            ['Ц'] = 214,
+            ['Ч'] = 215,
+            ['Ш'] = 216,
+            ['Щ'] = 217,
+            ['Ь'] = 220,
+            ['Ю'] = 222,
+            ['Я'] = 223,
+
+            ['а'] = 224,
+            ['б'] = 225,
+            ['в'] = 226,
+            ['г'] = 227,
+            ['ґ'] = 180,
+            ['д'] = 228,
+            ['е'] = 229,
+            ['є'] = 186,
+            ['ж'] = 230,
+            ['з'] = 231,
+            ['и'] = 232,
+            ['і'] = 179,
             ['ї'] = 191,
-            ['Ё'] = 168,
-            ['ё'] = 184,
+            ['й'] = 233,
+            ['к'] = 234,
+            ['л'] = 235,
+            ['м'] = 236,
+            ['н'] = 237,
+            ['о'] = 238,
+            ['п'] = 239,
+            ['р'] = 240,
+            ['с'] = 241,
+            ['т'] = 242,
+            ['у'] = 243,
+            ['ф'] = 244,
+            ['х'] = 245,
+            ['ц'] = 246,
+            ['ч'] = 247,
+            ['ш'] = 248,
+            ['щ'] = 249,
+            ['ь'] = 252,
+            ['ю'] = 254,
+            ['я'] = 255,
+
             ['№'] = 185
         };
-        const string rusUpper = "АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ";
-        const string rusLower = "абвгдежзийклмнопрстуфхцчшщъыьэюя";
-        for (var i = 0; i < 32; i++)
-        {
-            d[rusUpper[i]] = (byte)(192 + i);
-            d[rusLower[i]] = (byte)(224 + i);
-        }
-        return d;
     }
 }

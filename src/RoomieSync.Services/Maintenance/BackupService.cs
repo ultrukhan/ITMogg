@@ -6,9 +6,6 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Maintenance;
 
-/// <summary>
-/// Модуль локальних резервних копій (backup/restore <= 5 секунд) та контролю сховища чеків до 2 ГБ (Бекенд 1 — Уляна Трухан).
-/// </summary>
 public sealed class BackupService(
     IHouseholdRepository households,
     IMemberRepository members,
@@ -112,12 +109,10 @@ public sealed class BackupService(
     }
 }
 
-/// <summary>
-/// Локальне сховище прикріплених фотографій чеків з підтримкою до 2 ГБ (НФВ).
-/// </summary>
+
 public sealed class ReceiptStorageService : IReceiptStorageService
 {
-    public const long DefaultMaxStorageBytes = 2L * 1024 * 1024 * 1024; // 2 ГБ згідно з НФВ
+    public const long DefaultMaxStorageBytes = 2L * 1024 * 1024 * 1024;
     private readonly string _storageDir;
 
     public ReceiptStorageService(string? customDirectory = null, long maxStorageBytes = DefaultMaxStorageBytes)
@@ -142,15 +137,18 @@ public sealed class ReceiptStorageService : IReceiptStorageService
 
     public async Task<string> SaveReceiptImageAsync(string sourceFilePath, CancellationToken ct = default)
     {
-        if (!File.Exists(sourceFilePath))
+        if (string.IsNullOrWhiteSpace(sourceFilePath) || !File.Exists(sourceFilePath))
             throw new DomainException("Receipt file does not exist.");
+
+        var ext = Path.GetExtension(sourceFilePath).ToLowerInvariant();
+        if (ext is not ".jpg" and not ".jpeg" and not ".png")
+            throw new DomainException("Invalid file type. Only JPG and PNG are allowed.");
 
         var info = new FileInfo(sourceFilePath);
         var currentUsage = GetCurrentStorageUsageBytes();
         if (currentUsage + info.Length > MaxStorageBytes)
             throw new DomainException("Receipt storage limit (2 GB) exceeded. Please clean up old receipts.");
 
-        var ext = Path.GetExtension(sourceFilePath);
         var destFileName = $"{DateTime.UtcNow:yyyyMMdd_HHmmss}_{Guid.NewGuid():N}{ext}";
         var destPath = Path.Combine(_storageDir, destFileName);
 

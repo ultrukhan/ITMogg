@@ -39,7 +39,6 @@ public sealed class BalanceService(
         var from = await members.GetByIdAsync(transfer.FromMemberId, ct) ?? throw new DomainException("Debtor not found.");
         var to = await members.GetByIdAsync(transfer.ToMemberId, ct) ?? throw new DomainException("Creditor not found.");
 
-        // Забороняємо сторонньому співмешканцю позначати чужі борги сплаченими
         if (actorMemberId != transfer.FromMemberId && actorMemberId != transfer.ToMemberId)
             throw new DomainException($"Only {from.FirstName} (debtor) or {to.FirstName} (creditor) can mark this debt as paid.");
 
@@ -52,13 +51,11 @@ public sealed class BalanceService(
                 return new SettlementActionResult(false, $"Already marked by you. Waiting for {otherName} to confirm.");
             }
 
-            // Друга сторона підтвердила! Фіксуємо розрахунок у БД.
             _pendingConfirmations.TryRemove(key, out _);
             await RecordSettlementAsync(householdId, transfer, ct);
             return new SettlementActionResult(true, $"Payment between {from.FirstName} and {to.FirstName} confirmed and recorded!");
         }
 
-        // Перша сторона ініціювала погашення — чекаємо підтвердження другої сторони
         _pendingConfirmations[key] = actorMemberId;
         var otherParty = actorMemberId == from.Id ? to : from;
         var actorName = actorMemberId == from.Id ? from.FirstName : to.FirstName;
