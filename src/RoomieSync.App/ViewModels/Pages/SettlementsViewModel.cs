@@ -110,7 +110,7 @@ public sealed partial class SettlementsViewModel(
         if (path is null) return;
         await RunAsync(async () =>
         {
-            await export.ExportSettlementPlanPdfAsync(path, $"{session.CurrentHousehold?.Name} — {Loc.Get("S.Settlements.Title")}", ExportRows());
+            await export.ExportSettlementPlanPdfAsync(path, $"{session.CurrentHousehold?.Name} â€” {Loc.Get("S.Settlements.Title")}", ExportRows());
             toast.Show(Loc.Format("S.Export.Saved", Path.GetFileName(path)));
         }, toast);
     }

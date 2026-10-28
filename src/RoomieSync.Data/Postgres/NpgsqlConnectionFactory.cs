@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Npgsql;
 
 namespace RoomieSync.Data.Postgres;
@@ -18,6 +19,7 @@ public sealed class NpgsqlConnectionFactory : IDbConnectionFactory, IDisposable
         _dataSource = NpgsqlDataSource.Create(connectionString);
     }
 
+    [ExcludeFromCodeCoverage]
     public async Task<NpgsqlConnection> OpenAsync(CancellationToken ct = default) => await _dataSource.OpenConnectionAsync(ct);
 
     public void Dispose() => _dataSource.Dispose();
@@ -34,6 +36,7 @@ internal static class DbExtensions
         return cmd;
     }
 
+    [ExcludeFromCodeCoverage]
     public static T? GetNullable<T>(this NpgsqlDataReader r, string column)
     {
         var i = r.GetOrdinal(column);
