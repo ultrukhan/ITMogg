@@ -114,7 +114,7 @@ public sealed partial class AddExpenseViewModel : PageViewModel
         text = text.Trim()
             .Replace("$", "")
             .Replace("?", "")
-            .Replace("ˆ", "")
+            .Replace("Â£", "")
             .Replace("?", "")
             .Replace("z?", "")
             .Replace("%", "")

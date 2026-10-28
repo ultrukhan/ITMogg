@@ -142,7 +142,7 @@
                 <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Row.Title}" Style="{StaticResource CardTitle}" />
                     <TextBlock Style="{StaticResource Muted}">
-                        <Run Text="{Binding Row.DateText, Mode=OneWay}" /> <Run Text="·" /> <Run Text="{Binding Row.CategoryName, Mode=OneWay}" />
+                        <Run Text="{Binding Row.DateText, Mode=OneWay}" /> <Run Text="Â·" /> <Run Text="{Binding Row.CategoryName, Mode=OneWay}" />
                     </TextBlock>
                 </StackPanel>
             </StackPanel>

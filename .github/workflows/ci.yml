@@ -1,0 +1,43 @@
+name: RoomieSync CI & Quality Gate
+
+on:
+  push:
+    branches: [ main, develop, "**" ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-test-quality:
+    name: Build, Test & Code Quality
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 8 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore RoomieSync.sln
+
+      - name: Build solution (Quality Gate - Warnings & Analyzers)
+        run: dotnet build RoomieSync.sln --configuration Release --no-restore
+
+      - name: Run Unit & NFR Tests with Code Coverage
+        run: >
+          dotnet test tests/RoomieSync.Tests/RoomieSync.Tests.csproj
+          --configuration Release
+          --no-build
+          --verbosity normal
+          --collect:"XPlat Code Coverage"
+          --results-directory ./TestResults
+
+      - name: Upload Coverage Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: ./TestResults/**/coverage.cobertura.xml
+          
