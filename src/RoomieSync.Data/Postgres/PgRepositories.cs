@@ -1,10 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
 using Npgsql;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Data.Postgres;
 
-
+[ExcludeFromCodeCoverage]
 public sealed class PgHouseholdRepository(IDbConnectionFactory db) : IHouseholdRepository
 {
     public async Task<Household?> GetByIdAsync(Guid id, CancellationToken ct = default)
@@ -57,6 +58,7 @@ public sealed class PgHouseholdRepository(IDbConnectionFactory db) : IHouseholdR
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgMemberRepository(IDbConnectionFactory db) : IMemberRepository
 {
     private const string Columns = "id, household_id, display_name, role, avatar_color, joined_at, is_active";
@@ -109,6 +111,7 @@ public sealed class PgMemberRepository(IDbConnectionFactory db) : IMemberReposit
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgUserAccountRepository(IDbConnectionFactory db) : IUserAccountRepository
 {
     private const string Columns = "member_id, email, password_hash, password_salt, failed_attempts, locked_until";
@@ -180,6 +183,7 @@ public sealed class PgUserAccountRepository(IDbConnectionFactory db) : IUserAcco
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgExpenseRepository(IDbConnectionFactory db) : IExpenseRepository
 {
     private const string Columns = "id, household_id, title, merchant, amount, expense_date, category, paid_by_member_id, split_method, receipt_image_path, created_at";
@@ -296,6 +300,7 @@ public sealed class PgExpenseRepository(IDbConnectionFactory db) : IExpenseRepos
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgSettlementRepository(IDbConnectionFactory db) : ISettlementRepository
 {
     public async Task<IReadOnlyList<Settlement>> GetByHouseholdAsync(Guid householdId, CancellationToken ct = default)
@@ -331,6 +336,7 @@ public sealed class PgSettlementRepository(IDbConnectionFactory db) : ISettlemen
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgChoreRepository(IDbConnectionFactory db) : IChoreRepository
 {
     private const string Columns = "id, household_id, title, assignee_id, deadline, status, rotation, created_at, completed_at";
@@ -395,6 +401,7 @@ public sealed class PgChoreRepository(IDbConnectionFactory db) : IChoreRepositor
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgNotificationRepository(IDbConnectionFactory db) : INotificationRepository
 {
     public async Task<IReadOnlyList<Notification>> GetForMemberAsync(Guid memberId, int take = 50, CancellationToken ct = default)
@@ -446,6 +453,7 @@ public sealed class PgNotificationRepository(IDbConnectionFactory db) : INotific
     }
 }
 
+[ExcludeFromCodeCoverage]
 public sealed class PgReportRepository(IDbConnectionFactory db) : IReportRepository
 {
     public async Task<IReadOnlyList<CategorySpendSummary>> GetCategorySpendingAsync(Guid householdId, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)

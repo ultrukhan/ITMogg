@@ -65,7 +65,7 @@ public sealed partial class ReportsViewModel : PageViewModel
     [ObservableProperty] private decimal _total;
     [ObservableProperty] private decimal _monthlyAverage;
     [ObservableProperty] private int _expenseCount;
-    [ObservableProperty] private string _topCategory = "—";
+    [ObservableProperty] private string _topCategory = "â€”";
 
     partial void OnSelectedPeriodChanged(ReportPeriodOption value)
     {
@@ -128,7 +128,7 @@ public sealed partial class ReportsViewModel : PageViewModel
                 Brush = CategoryVisuals.Brush(g.Key),
                 Percent = Total == 0 ? 0 : (double)(g.Sum(e => e.Amount) / Total * 100)
             });
-        TopCategory = Categories.FirstOrDefault()?.Label ?? "—";
+        TopCategory = Categories.FirstOrDefault()?.Label ?? "â€”";
 
         MemberRows.Clear();
         foreach (var m in members)

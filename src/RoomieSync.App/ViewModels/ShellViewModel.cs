@@ -97,7 +97,7 @@ public sealed partial class ShellViewModel : ViewModelBase
 
         if (_session.CurrentHousehold is { } h)
         {
-            try { await _notifications.CheckOverdueChoresAsync(h.Id); } catch { /* не критично */ }
+            try { await _notifications.CheckOverdueChoresAsync(h.Id); } catch { }
         }
         await LoadNotificationsAsync();
         await Navigation.NavigateToAsync<DashboardViewModel>();

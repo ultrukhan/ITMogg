@@ -51,7 +51,7 @@ public sealed class Avatar : Control
             brush.Freeze();
             d.SetValue(FillPropertyKey, brush);
         }
-        catch (FormatException)
+        catch (FormatException) { }
     }
 
     private static Color Lighten(Color c, double k) => Color.FromRgb(
