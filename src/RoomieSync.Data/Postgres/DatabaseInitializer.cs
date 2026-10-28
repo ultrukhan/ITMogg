@@ -1,7 +1,9 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 
 namespace RoomieSync.Data.Postgres;
 
+[ExcludeFromCodeCoverage]
 public sealed class DatabaseInitializer(IDbConnectionFactory factory)
 {
     public async Task EnsureSchemaAsync(CancellationToken ct = default)

@@ -388,6 +388,693 @@ public sealed class FullCoverageAndNfrTests
         Assert.False(env.Session.IsAuthenticated);
     }
 
+    [Fact(DisplayName = "Повне покриття доменних моделей, безпеки, годинника та форматування валют (RoomieSync.Core)")]
+    public void Coverage_Core_AllModels_Security_And_EdgeCases()
+    {
+        var sysClock = new SystemClock();
+        Assert.True(sysClock.Now <= DateTime.Now.AddSeconds(5));
+
+        var delRes = new DeleteExpenseResult(true, 2, 2);
+        Assert.True(delRes.Deleted);
+        Assert.Equal(2, delRes.ApprovedCount);
+        Assert.Equal(2, delRes.RequiredCount);
+
+        var setRes = new SettlementActionResult(true, "Settled!");
+        Assert.True(setRes.Settled);
+        Assert.Equal("Settled!", setRes.Message);
+
+        var memSpend = new MemberSpendSummary(Guid.NewGuid(), "Nazar", 100m, 40m);
+        Assert.Equal(60m, memSpend.NetBalance);
+
+        var monthSpend = new MonthlySpendSummary(2026, 5, 1000m, 4);
+        Assert.Equal(2026, monthSpend.Year);
+        Assert.Equal(5, monthSpend.Month);
+        Assert.Equal(1000m, monthSpend.TotalAmount);
+        Assert.Equal(4, monthSpend.ExpenseCount);
+
+        var catSpend = new CategorySpendSummary(ExpenseCategory.Rent, 800m, 1, 80.0);
+        Assert.Equal(ExpenseCategory.Rent, catSpend.Category);
+        Assert.Equal(80.0, catSpend.Percentage);
+
+        var repSum = new HouseholdReportSummary(1000m, 500m, 4, ExpenseCategory.Rent, new[] { catSpend }, new[] { monthSpend }, new[] { memSpend });
+        Assert.Equal(1000m, repSum.TotalSpent);
+        Assert.Equal(500m, repSum.MonthlyAverage);
+        Assert.Equal(4, repSum.ExpenseCount);
+        Assert.Equal(ExpenseCategory.Rent, repSum.TopCategory);
+        Assert.Single(repSum.ByCategory);
+        Assert.Single(repSum.ByMonth);
+        Assert.Single(repSum.ByMember);
+
+        var plan = new SettlementPlan(new[] { new Transfer(Guid.NewGuid(), Guid.NewGuid(), 25m) }, Array.Empty<MemberBalance>(), 3);
+        Assert.Equal(25m, plan.TotalAmount);
+        Assert.Equal(2, plan.TransfersSaved);
+        Assert.False(plan.IsSettled);
+
+        var valOk = ValidationResult.Ok();
+        Assert.True(valOk.IsValid);
+        Assert.False(valOk.HasWarnings);
+        valOk.Warning("warn1").Error("err1");
+        Assert.Single(valOk.Warnings);
+        Assert.Single(valOk.Errors);
+        Assert.True(valOk.HasWarnings);
+        Assert.False(valOk.IsValid);
+
+        bool currChanged = false;
+        EventHandler handler = (_, _) => currChanged = true;
+        MoneyFormat.CurrencyChanged += handler;
+        try
+        {
+            MoneyFormat.SetCurrency(null);
+            Assert.Equal("USD", MoneyFormat.CurrencyCode);
+            MoneyFormat.SetCurrency("UNKNOWN_CURR");
+            Assert.Equal("USD", MoneyFormat.CurrencyCode);
+            Assert.True(currChanged);
+            Assert.StartsWith("+", MoneyFormat.FormatSigned(15.5m));
+            Assert.StartsWith("-", MoneyFormat.FormatSigned(-15.5m));
+            Assert.Equal("$0.00", MoneyFormat.FormatSigned(0m));
+        }
+        finally
+        {
+            MoneyFormat.CurrencyChanged -= handler;
+        }
+
+        var hasher = new Pbkdf2PasswordHasher();
+        Assert.ThrowsAny<ArgumentException>(() => hasher.Hash(""));
+        var (hash, salt) = hasher.Hash("ValidPass123");
+        Assert.True(hasher.Verify("ValidPass123", hash, salt));
+        Assert.False(hasher.Verify("WrongPass", hash, salt));
+        Assert.False(hasher.Verify("", hash, salt));
+        Assert.False(hasher.Verify("ValidPass123", "", salt));
+        Assert.False(hasher.Verify("ValidPass123", hash, ""));
+
+        var emptyMember = new Member { DisplayName = "   " };
+        Assert.Equal("?", emptyMember.Initials);
+        Assert.Equal("   ", emptyMember.FirstName);
+        Assert.Equal("   ", emptyMember.ToString());
+        Assert.True(emptyMember.IsEmailConfirmed);
+
+        var twoWordMember = new Member { DisplayName = "Solomiia Uhryn" };
+        Assert.Equal("SU", twoWordMember.Initials);
+        Assert.Equal("Solomiia", twoWordMember.FirstName);
+
+        var doneChore = new Chore { Status = ChoreStatus.Done, Deadline = DateTime.Today.AddDays(-1) };
+        Assert.False(doneChore.IsOverdue(DateTime.Today));
+        var noDeadlineChore = new Chore { Status = ChoreStatus.ToDo, Deadline = null };
+        Assert.False(noDeadlineChore.IsOverdue(DateTime.Today));
+        var futureChore = new Chore { Status = ChoreStatus.ToDo, Deadline = DateTime.Today.AddDays(1) };
+        Assert.False(futureChore.IsOverdue(DateTime.Today));
+    }
+
+    [Fact(DisplayName = "Повне покриття DataServiceCollectionExtensions, NpgsqlConnectionFactory та InMemory-репозиторіїв")]
+    public async Task Coverage_Data_DI_PostgresConfig_And_InMemoryRepositories()
+    {
+        // 1. DI реєстрація для Postgres та Gemini HttpClient
+        var pgConfig = new TestConfiguration(new Dictionary<string, string?>
+        {
+            ["Data:Provider"] = "Postgres",
+            ["Data:SeedDemoData"] = "false",
+            ["ConnectionStrings:RoomieSync"] = "Host=localhost;Database=roomiesync_test;Username=postgres;Password=postgres",
+            ["Gemini:UseMock"] = "false",
+            ["Gemini:ApiKey"] = "test-gemini-api-key"
+        });
+        var pgServices = new ServiceCollection()
+            .AddRoomieSyncData(pgConfig)
+            .AddRoomieSyncServices(pgConfig);
+        using var pgProvider = pgServices.BuildServiceProvider();
+        var factory = pgProvider.GetRequiredService<RoomieSync.Data.Postgres.IDbConnectionFactory>();
+        Assert.NotNull(factory);
+        Assert.IsType<GeminiReceiptParser>(pgProvider.GetRequiredService<IReceiptParser>());
+
+        Assert.Throws<InvalidOperationException>(() => new RoomieSync.Data.Postgres.NpgsqlConnectionFactory("   "));
+        using (var npgsqlFactory = new RoomieSync.Data.Postgres.NpgsqlConnectionFactory("Host=localhost;Database=test;Username=u;Password=p"))
+        {
+            Assert.NotNull(npgsqlFactory);
+        }
+
+        // 2. DbExtensions: Cmd та P
+        using (var conn = new Npgsql.NpgsqlConnection())
+        using (var cmd = RoomieSync.Data.Postgres.DbExtensions.Cmd(conn, "SELECT @p1, @p2"))
+        {
+            RoomieSync.Data.Postgres.DbExtensions.P(cmd, "p1", "val");
+            RoomieSync.Data.Postgres.DbExtensions.P(cmd, "p2", null);
+            Assert.Equal(2, cmd.Parameters.Count);
+            Assert.Equal("val", cmd.Parameters["p1"].Value);
+            Assert.Equal(DBNull.Value, cmd.Parameters["p2"].Value);
+        }
+
+        // 3. InMemory репозиторії та повторний виклик DemoDataSeeder
+        var env = BuildEnvironment(seedDemo: true);
+        await env.Provider.InitializeRoomieSyncDataAsync();
+        await env.Provider.GetRequiredService<DemoDataSeeder>().SeedAsync(); // другий виклик (early return)
+
+        var hhRepo = env.Provider.GetRequiredService<IHouseholdRepository>();
+        var memRepo = env.Provider.GetRequiredService<IMemberRepository>();
+        var accRepo = env.Provider.GetRequiredService<IUserAccountRepository>();
+        var expRepo = env.Provider.GetRequiredService<IExpenseRepository>();
+        var choreRepo = env.Provider.GetRequiredService<IChoreRepository>();
+        var notifRepo = env.Provider.GetRequiredService<INotificationRepository>();
+        var repRepo = env.Provider.GetRequiredService<IReportRepository>();
+
+        var allHouseholds = await hhRepo.GetAllAsync();
+        Assert.NotEmpty(allHouseholds);
+        await hhRepo.UpdateAsync(new Household { Id = Guid.NewGuid(), Name = "Ghost" });
+        await memRepo.UpdateAsync(new Member { Id = Guid.NewGuid(), DisplayName = "Ghost" });
+        await accRepo.UpdateAsync(new UserAccount { MemberId = Guid.NewGuid(), Email = "ghost@x.com" });
+        await expRepo.UpdateAsync(new Expense { Id = Guid.NewGuid(), Title = "Ghost" });
+        await choreRepo.UpdateAsync(new Chore { Id = Guid.NewGuid(), Title = "Ghost" });
+
+        // Звіти для домогосподарства без витрат (grandTotal == 0)
+        var emptyHid = Guid.NewGuid();
+        Assert.Empty(await repRepo.GetCategorySpendingAsync(emptyHid));
+        Assert.Empty(await repRepo.GetMonthlySpendingAsync(emptyHid, DateTime.Today.AddMonths(-1), DateTime.Today));
+        Assert.Empty(await repRepo.GetMemberSpendingAsync(emptyHid));
+
+        var firstMember = (await memRepo.GetByHouseholdAsync(allHouseholds[0].Id, includeInactive: true)).First();
+        await notifRepo.AddRangeAsync(new[]
+        {
+            new Notification { HouseholdId = allHouseholds[0].Id, RecipientMemberId = firstMember.Id, Message = "Test" }
+        });
+        await notifRepo.MarkAllReadAsync(firstMember.Id);
+        var readNotes = await notifRepo.GetForMemberAsync(firstMember.Id);
+        Assert.All(readNotes, n => Assert.True(n.IsRead));
+    }
+
+    [Fact(DisplayName = "Повне покриття сценаріїв AuthService, SessionContext та HouseholdService")]
+    public async Task Coverage_Services_Auth_Session_And_Household()
+    {
+        var env = BuildEnvironment();
+
+        // Конструктор AuthService за замовчуванням
+        var defaultAuth = new RoomieSync.Services.Auth.AuthService(
+            env.AccountRepo,
+            env.Provider.GetRequiredService<IMemberRepository>(),
+            env.Provider.GetRequiredService<IHouseholdRepository>());
+        Assert.Equal(LoginStatus.InvalidCredentials, (await defaultAuth.LoginAsync("", "")).Status);
+        Assert.Equal(LoginStatus.InvalidCredentials, (await defaultAuth.LoginAsync("nobody@lnu.edu.ua", "pass123")).Status);
+
+        // SessionContext: усі гілки
+        int changeCount = 0;
+        env.Session.Changed += (_, _) => changeCount++;
+        var (h1, admin1) = await env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home One", "Solomiia", "solomiia@lnu.edu.ua", "Secret123", new[] { "Uliana", "Nazar" }, "  "));
+        Assert.Equal("UAH", h1.Currency);
+
+        env.Session.SignIn(admin1, h1);
+        Assert.True(env.Session.IsAuthenticated);
+        env.Session.UpdateHousehold(h1);
+        env.Session.UpdateMember(new Member { Id = Guid.NewGuid(), DisplayName = "Other" }); // ігнорується
+        admin1.DisplayName = "Solomiia U.";
+        env.Session.UpdateMember(admin1);
+        Assert.Equal("Solomiia U.", env.Session.CurrentMember!.DisplayName);
+        env.Session.SignOut();
+        Assert.False(env.Session.IsAuthenticated);
+        Assert.True(changeCount >= 4);
+
+        // Валідація CreateHouseholdAsync
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("   ", "A", "a@b.com", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home One", "A", "a@b.com", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home Two", "   ", "a@b.com", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home Two", "A", "bad", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home Two", "A", "a@b.com", "123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home Two", "Same", "a@b.com", "Secret123", new[] { "same" })));
+
+        // RenameAsync та ChangeCurrencyAsync
+        var (h2, admin2) = await env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Home Two", "Solomiia", "solomiia@lnu.edu.ua", "Secret123", new[] { "Anna" }, "EUR"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameAsync(h1.Id, "   "));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameAsync(h1.Id, "Home Two"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameAsync(Guid.NewGuid(), "Valid Name"));
+        var renamedH1 = await env.Households.RenameAsync(h1.Id, "Home One Renamed");
+        Assert.Equal("Home One Renamed", renamedH1.Name);
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.ChangeCurrencyAsync(Guid.NewGuid(), "USD"));
+        var currDefault = await env.Households.ChangeCurrencyAsync(h1.Id, "  ");
+        Assert.Equal("UAH", currDefault.Currency);
+        var currPln = await env.Households.ChangeCurrencyAsync(h1.Id, "pln");
+        Assert.Equal("PLN", currPln.Currency);
+
+        // SetCredentialsAsync, GetEmailAsync, ConfirmMembershipAsync, GetUserHouseholdsAsync
+        var h1Members = await env.Households.GetMembersAsync(h1.Id);
+        var uliana = h1Members.Single(m => m.DisplayName == "Uliana");
+        await Assert.ThrowsAsync<DomainException>(() => env.Auth.SetCredentialsAsync(uliana.Id, "invalid", "Secret123"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "123"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Auth.SetCredentialsAsync(Guid.NewGuid(), "uliana@lnu.edu.ua", "Secret123"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Auth.SetCredentialsAsync(uliana.Id, "solomiia@lnu.edu.ua", "Secret123"));
+
+        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass111");
+        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass222"); // оновлення існуючих
+        Assert.Equal("uliana@lnu.edu.ua", await env.Auth.GetEmailAsync(uliana.Id));
+        Assert.Null(await env.Auth.GetEmailAsync(Guid.NewGuid()));
+
+        await env.Auth.ConfirmMembershipAsync(uliana.Id);
+        await env.Auth.ConfirmMembershipAsync(Guid.NewGuid());
+
+        var userHouseholds = await env.Auth.GetUserHouseholdsAsync(admin1.Id);
+        Assert.Equal(2, userHouseholds.Count);
+        var nazar = h1Members.Single(m => m.DisplayName == "Nazar");
+        Assert.Empty(await env.Auth.GetUserHouseholdsAsync(nazar.Id));
+
+        // Login після 1 невдалої спроби скидає лічильник FailedAttempts
+        await env.Auth.LoginAsync("uliana@lnu.edu.ua", "wrong");
+        var okLogin = await env.Auth.LoginAsync("uliana@lnu.edu.ua", "Pass222");
+        Assert.Equal(LoginStatus.Success, okLogin.Status);
+
+        // AddMemberAsync, RenameMemberAsync, CanDeleteMemberAsync, DeleteMemberAsync
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.AddMemberAsync(h1.Id, "  "));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.AddMemberAsync(h1.Id, "Uliana"));
+        var m4 = await env.Households.AddMemberAsync(h1.Id, "M4");
+        var m5 = await env.Households.AddMemberAsync(h1.Id, "M5");
+        var m6 = await env.Households.AddMemberAsync(h1.Id, "M6");
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.AddMemberAsync(h1.Id, "M7"));
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameMemberAsync(m4.Id, "  "));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameMemberAsync(Guid.NewGuid(), "Valid"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.RenameMemberAsync(m4.Id, "Uliana"));
+        var renamedM4 = await env.Households.RenameMemberAsync(m4.Id, "M4 Updated");
+        Assert.Equal("M4 Updated", renamedM4.DisplayName);
+
+        Assert.False(await env.Households.CanDeleteMemberAsync(Guid.NewGuid()));
+        Assert.False(await env.Households.CanDeleteMemberAsync(admin1.Id));
+
+        // У h2 лише 2 учасники (MinMembers) -> видалення другого заборонене
+        var h2Members = await env.Households.GetMembersAsync(h2.Id);
+        var anna = h2Members.Single(m => m.DisplayName == "Anna");
+        Assert.True(await env.Households.CanDeleteMemberAsync(anna.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.DeleteMemberAsync(anna.Id));
+        Assert.NotNull(admin2);
+    }
+
+    [Fact(DisplayName = "Повне покриття двокрокового погашення боргів, голосування за видалення витрат, ротації обов'язків та сповіщень")]
+    public async Task Coverage_Services_TwoStepSettlement_DeleteApproval_Chores_And_Notifications()
+    {
+        var env = BuildEnvironment();
+        var (h, admin) = await env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("Workflow Home", "Admin", "adm@lnu.edu.ua", "Secret123", new[] { "Bob", "Cara" }));
+        var members = await env.Households.GetMembersAsync(h.Id);
+        var bob = members.Single(m => m.DisplayName == "Bob");
+        var cara = members.Single(m => m.DisplayName == "Cara");
+
+        // 1. SplitCalculator та ExpenseService.Validate крайові випадки
+        Assert.Empty(RoomieSync.Services.Expenses.SplitCalculator.Calculate(100m, SplitMethod.Equally, Array.Empty<ShareInput>()));
+        var non100Pct = RoomieSync.Services.Expenses.SplitCalculator.Calculate(100m, SplitMethod.ByPercentage,
+            new[] { new ShareInput(admin.Id, 40m), new ShareInput(bob.Id, 40m) });
+        Assert.Equal(80m, non100Pct.Sum(s => s.Amount));
+        Assert.Throws<ArgumentOutOfRangeException>(() =>
+            RoomieSync.Services.Expenses.SplitCalculator.Calculate(100m, (SplitMethod)999, new[] { new ShareInput(admin.Id, 1m) }));
+
+        var longTitle = new string('X', 205);
+        var valErrs = env.Expenses.Validate(new NewExpenseRequest(
+            longTitle, 2_000_000m, env.Clock.Now.AddDays(5), ExpenseCategory.Other, Guid.Empty, SplitMethod.Equally,
+            new[] { new ShareInput(admin.Id, -5m) }));
+        Assert.False(valErrs.IsValid);
+        Assert.True(valErrs.Errors.Count >= 4);
+
+        var exactMismatch = env.Expenses.Validate(new NewExpenseRequest(
+            "Exact", 50m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.ByExactAmount,
+            new[] { new ShareInput(admin.Id, 20m), new ShareInput(bob.Id, 20m) }));
+        Assert.False(exactMismatch.IsValid);
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest(
+            "", 10m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.Equally, Array.Empty<ShareInput>())));
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.UpdateExpenseAsync(Guid.NewGuid(), new NewExpenseRequest(
+            "Valid", 10m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.Equally, new[] { new ShareInput(admin.Id, 1m) })));
+
+        // 2. Створюємо витрату між Admin та Bob і тестуємо двокрокове голосування за видалення (RequestOrApproveDeleteAsync)
+        var exp = await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest(
+            "Shared Dinner", 100m, env.Clock.Now, ExpenseCategory.Groceries, admin.Id, SplitMethod.Equally,
+            new[] { new ShareInput(admin.Id, 1m), new ShareInput(bob.Id, 1m) }));
+        Assert.NotNull(await env.Expenses.GetExpenseAsync(exp.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.UpdateExpenseAsync(exp.Id, new NewExpenseRequest(
+            "", 10m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.Equally, Array.Empty<ShareInput>())));
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.RequestOrApproveDeleteAsync(Guid.NewGuid(), admin.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.RequestOrApproveDeleteAsync(exp.Id, Guid.NewGuid()));
+        // Bob (не платник і не адмін) не може сам ініціювати видалення
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.RequestOrApproveDeleteAsync(exp.Id, bob.Id));
+        // Cara не є учасницею цієї витрати
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.RequestOrApproveDeleteAsync(exp.Id, cara.Id));
+
+        var step1 = await env.Expenses.RequestOrApproveDeleteAsync(exp.Id, admin.Id);
+        Assert.False(step1.Deleted);
+        Assert.Equal(1, step1.ApprovedCount);
+        Assert.Equal(2, step1.RequiredCount);
+
+        // Після ініціації сторонній учасник (Cara) все одно не може голосувати
+        await Assert.ThrowsAsync<DomainException>(() => env.Expenses.RequestOrApproveDeleteAsync(exp.Id, cara.Id));
+
+        var step2 = await env.Expenses.RequestOrApproveDeleteAsync(exp.Id, bob.Id);
+        Assert.True(step2.Deleted);
+        Assert.Null(await env.Expenses.GetExpenseAsync(exp.Id));
+
+        // Додаємо ще одну витрату і видаляємо напряму
+        var expDirect = await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest(
+            "Direct Delete", 60m, env.Clock.Now, ExpenseCategory.Utilities, admin.Id, SplitMethod.Equally,
+            new[] { new ShareInput(admin.Id, 1m), new ShareInput(bob.Id, 1m) }));
+        await env.Expenses.DeleteExpenseAsync(expDirect.Id);
+
+        // 3. Двокрокове погашення боргів (InitiateOrConfirmSettlementAsync)
+        await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest(
+            "Rent Split", 200m, env.Clock.Now, ExpenseCategory.Rent, admin.Id, SplitMethod.Equally,
+            new[] { new ShareInput(admin.Id, 1m), new ShareInput(bob.Id, 1m) }));
+
+        var transfer = new Transfer(bob.Id, admin.Id, 100m);
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.InitiateOrConfirmSettlementAsync(h.Id, new Transfer(bob.Id, admin.Id, 0m), bob.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.InitiateOrConfirmSettlementAsync(h.Id, new Transfer(Guid.NewGuid(), admin.Id, 10m), bob.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.InitiateOrConfirmSettlementAsync(h.Id, new Transfer(bob.Id, Guid.NewGuid(), 10m), bob.Id));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, cara.Id));
+
+        Assert.False(env.Balances.HasPendingConfirmation(h.Id, transfer, out _));
+        var initRes = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, bob.Id);
+        Assert.False(initRes.Settled);
+        Assert.True(env.Balances.HasPendingConfirmation(h.Id, transfer, out var confirmer));
+        Assert.Equal(bob.Id, confirmer);
+
+        // Повторне натискання тією ж стороною
+        var repeatRes = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, bob.Id);
+        Assert.False(repeatRes.Settled);
+
+        // Друга сторона (Admin) підтверджує
+        var confirmRes = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, admin.Id);
+        Assert.True(confirmRes.Settled);
+        Assert.NotEmpty(await env.Balances.GetSettlementsAsync(h.Id));
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.RecordSettlementAsync(h.Id, new Transfer(bob.Id, admin.Id, -5m)));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.RequestSettlementAsync(h.Id, new Transfer(bob.Id, admin.Id, 0m)));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.RequestSettlementAsync(h.Id, new Transfer(Guid.NewGuid(), admin.Id, 10m)));
+        await Assert.ThrowsAsync<DomainException>(() => env.Balances.RequestSettlementAsync(h.Id, new Transfer(bob.Id, Guid.NewGuid(), 10m)));
+
+        // 4. ChoreService та NotificationService (включно з простроченими завданнями)
+        await Assert.ThrowsAsync<DomainException>(() => env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("  ", null, null, ChoreRotation.None)));
+        var choreDaily = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Take out trash", bob.Id, env.Clock.Now.AddDays(-5), ChoreRotation.Daily));
+        var choreMonthly = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Pay bills", null, env.Clock.Now.AddMonths(-2), ChoreRotation.Monthly));
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Chores.UpdateChoreAsync(new Chore { Id = choreDaily.Id, Title = " " }));
+        choreDaily.Title = "Take out trash daily";
+        await env.Chores.UpdateChoreAsync(choreDaily);
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Chores.AssignAsync(Guid.NewGuid(), bob.Id));
+        await env.Chores.AssignAsync(choreMonthly.Id, cara.Id);
+
+        // CheckOverdueChoresAsync: перевірка генерації сповіщень та захисту від дублікатів
+        await env.Notifications.CheckOverdueChoresAsync(h.Id);
+        await env.Notifications.CheckOverdueChoresAsync(h.Id); // вдруге не дублює
+        var bobNotes = await env.Notifications.GetNotificationsAsync(bob.Id);
+        Assert.Contains(bobNotes, n => n.Type == NotificationType.OverdueChore);
+        await env.Notifications.MarkAllReadAsync(bob.Id);
+
+        await Assert.ThrowsAsync<DomainException>(() => env.Chores.ChangeStatusAsync(Guid.NewGuid(), ChoreStatus.Done));
+        Assert.Null(await env.Chores.ChangeStatusAsync(choreDaily.Id, ChoreStatus.ToDo)); // той самий статус
+        var nextDaily = await env.Chores.ChangeStatusAsync(choreDaily.Id, ChoreStatus.Done);
+        Assert.NotNull(nextDaily);
+        Assert.True(nextDaily!.Deadline >= env.Clock.Now);
+
+        var nextMonthly = await env.Chores.ChangeStatusAsync(choreMonthly.Id, ChoreStatus.Done);
+        Assert.NotNull(nextMonthly);
+        Assert.True(nextMonthly!.Deadline >= env.Clock.Now);
+
+        Assert.Equal(env.Clock.Now, ((RoomieSync.Services.Chores.ChoreService)env.Chores).NextDeadline(env.Clock.Now, ChoreRotation.None));
+        Assert.Null(env.Chores.GetNextAssignee(Array.Empty<Member>(), null));
+        await env.Chores.DeleteChoreAsync(choreDaily.Id);
+    }
+
+    [Fact(DisplayName = "Повне покриття крайових випадків парсерів чеків, валідації, бекапів, сховища та PDF-генератора")]
+    public async Task Coverage_Receipts_Validation_Backup_Storage_And_Pdf_EdgeCases()
+    {
+        var env = BuildEnvironment();
+
+        // 1. GeminiOptions та GeminiReceiptParser помилки
+        var emptyOpts = new GeminiOptions { ApiKey = null };
+        _ = emptyOpts.ResolveApiKey();
+        using var dummyClient = new HttpClient(new FakeHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.InternalServerError))));
+        var noKeyParser = new GeminiReceiptParser(dummyClient, new GeminiOptions { ApiKey = "   " });
+        await Assert.ThrowsAsync<ReceiptParseException>(() => noKeyParser.ParseReceiptAsync(new byte[] { 1 }, "image/png"));
+
+        var errStatusParser = new GeminiReceiptParser(dummyClient, new GeminiOptions { ApiKey = "key" });
+        await Assert.ThrowsAsync<ReceiptParseException>(() => errStatusParser.ParseReceiptAsync(new byte[] { 1 }, "image/png"));
+
+        using var badJsonClient = new HttpClient(new FakeHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent("{\"not_candidates\":[]}", Encoding.UTF8, "application/json")
+        })));
+        var badJsonParser = new GeminiReceiptParser(badJsonClient, new GeminiOptions { ApiKey = "key" });
+        await Assert.ThrowsAsync<ReceiptParseException>(() => badJsonParser.ParseReceiptAsync(new byte[] { 1 }, "image/png"));
+
+        // 2. MockReceiptParser slow сценарій
+        var fastMock = new MockReceiptParser(new GeminiOptions { TimeoutSeconds = 0 }, env.Clock);
+        var slowEx = await Assert.ThrowsAsync<ReceiptParseException>(() => fastMock.ParseReceiptAsync(new byte[] { 1 }, "image/png", "slow_receipt.png"));
+        Assert.True(slowEx.IsTimeout);
+
+        // 3. ReceiptValidationService усі гілки попереджень
+        var warnReceipt1 = new ParsedReceipt { Total = 0m, Merchant = "  ", Date = null };
+        var vr1 = env.Validator.ValidateReceipt(warnReceipt1);
+        Assert.Equal(3, vr1.Warnings.Count);
+
+        var warnReceiptFuture = new ParsedReceipt { Total = 10m, Merchant = "Shop", Date = env.Clock.Now.AddDays(5) };
+        Assert.True(env.Validator.ValidateReceipt(warnReceiptFuture).HasWarnings);
+
+        var warnReceiptOld = new ParsedReceipt { Total = 10m, Merchant = "Shop", Date = env.Clock.Now.AddYears(-2) };
+        Assert.True(env.Validator.ValidateReceipt(warnReceiptOld).HasWarnings);
+
+        // 4. BackupService: відновлення у порожню базу + помилки
+        await Assert.ThrowsAsync<DomainException>(() => env.Backup.ExportBackupAsync(Guid.NewGuid(), "none.json"));
+        await Assert.ThrowsAsync<DomainException>(() => env.Backup.RestoreBackupAsync("non_existent_backup_12345.json"));
+
+        var (h, admin) = await env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("FullBackupHome", "Admin", "adm@b.com", "Secret123", new[] { "Peer" }));
+        var members = await env.Households.GetMembersAsync(h.Id);
+        var peer = members.Single(m => m.DisplayName == "Peer");
+        await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest(
+            "Groceries", 100m, env.Clock.Now, ExpenseCategory.Groceries, admin.Id, SplitMethod.Equally,
+            members.Select(m => new ShareInput(m.Id, 1m)).ToList()));
+        await env.Balances.RecordSettlementAsync(h.Id, new Transfer(peer.Id, admin.Id, 50m));
+        await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Vacuum", peer.Id, env.Clock.Now.AddDays(1), ChoreRotation.Weekly));
+
+        var backupFile = Path.Combine(Path.GetTempPath(), $"full_backup_{Guid.NewGuid():N}.json");
+        try
+        {
+            await env.Backup.ExportBackupAsync(h.Id, backupFile);
+            // Відновлення у чисте середовище (гілки AddAsync)
+            var freshEnv = BuildEnvironment();
+            var pkg1 = await freshEnv.Backup.RestoreBackupAsync(backupFile);
+            Assert.Single(pkg1.Expenses);
+            Assert.Single(pkg1.Settlements);
+            Assert.Single(pkg1.Chores);
+            // Повторне відновлення у те саме середовище (гілки UpdateAsync)
+            var pkg2 = await freshEnv.Backup.RestoreBackupAsync(backupFile);
+            Assert.Equal(pkg1.Household.Id, pkg2.Household.Id);
+        }
+        finally
+        {
+            if (File.Exists(backupFile)) File.Delete(backupFile);
+        }
+
+        // 5. ReceiptStorageService: перевищення ліміту та відсутня директорія
+        var tempStorageDir = Path.Combine(Path.GetTempPath(), "RoomieSyncQuota_" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var tinyStorage = new ReceiptStorageService(tempStorageDir, maxStorageBytes: 4);
+            var imgPath = Path.Combine(tempStorageDir, "big.png");
+            await File.WriteAllBytesAsync(imgPath, new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 });
+            await Assert.ThrowsAsync<DomainException>(() => tinyStorage.SaveReceiptImageAsync(imgPath));
+
+            Directory.Delete(tempStorageDir, true);
+            Assert.Equal(0L, tinyStorage.GetCurrentStorageUsageBytes());
+        }
+        finally
+        {
+            if (Directory.Exists(tempStorageDir)) Directory.Delete(tempStorageDir, true);
+        }
+
+        // 6. SimplePdfWriter: спецсимволи, дужки, слеші, валюти та Latin-1 символи
+        var pdfPath = Path.Combine(Path.GetTempPath(), $"special_{Guid.NewGuid():N}.pdf");
+        try
+        {
+            var specialRows = new[]
+            {
+                new ReportRow(DateTime.Today, @"Test (1) \ ₴ € £ zł — – · … ©", "Ґудзики Єдиноріг Їжак Іній", "Олексій", 10m, 5m)
+            };
+            await env.Export.ExportExpensesPdfAsync(pdfPath, "Звіт (Спецсимволи)", specialRows);
+            Assert.True(File.Exists(pdfPath));
+        }
+        finally
+        {
+            if (File.Exists(pdfPath)) File.Delete(pdfPath);
+        }
+    }
+
+    [Fact(DisplayName = "Досягнення 100% покриття рядків та максимального покриття розгалужень (Branch Coverage)")]
+    public async Task Coverage_AllRemainingBranches_100Percent()
+    {
+        // 1. Порожній конфіг для AddRoomieSyncData та AddRoomieSyncServices + Postgres без ConnectionString
+        var emptyConfig = new ConfigurationBuilder().Build();
+        var defaultServices = new ServiceCollection()
+            .AddRoomieSyncData(emptyConfig)
+            .AddRoomieSyncServices(emptyConfig);
+        using var defaultProvider = defaultServices.BuildServiceProvider();
+        Assert.NotNull(defaultProvider.GetRequiredService<DataOptions>());
+
+        var pgNoCsConfig = new TestConfiguration(new Dictionary<string, string?>
+        {
+            ["Data:Provider"] = "Postgres",
+            ["Data:SeedDemoData"] = "false"
+        });
+        using var pgNoCsProvider = new ServiceCollection().AddRoomieSyncData(pgNoCsConfig).BuildServiceProvider();
+        await Assert.ThrowsAnyAsync<Exception>(() => pgNoCsProvider.InitializeRoomieSyncDataAsync());
+
+        // 2. AuthService із фолбеком GetByEmailAsync (коли GetAllByEmailAsync повертає порожній список) та null email
+        var env = BuildEnvironment();
+        var (h, admin) = await env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("BranchHome", "Admin", "branch@lnu.edu.ua", "Secret123", new[] { "Peer" }));
+        var members = await env.Households.GetMembersAsync(h.Id);
+        var peer = members.Single(m => m.DisplayName == "Peer");
+
+        var singleAcc = await env.AccountRepo.GetByEmailAsync("branch@lnu.edu.ua");
+        var stubAccRepo = new SingleOnlyAccountRepo(singleAcc!);
+        var fallbackAuth = new RoomieSync.Services.Auth.AuthService(
+            stubAccRepo,
+            env.Provider.GetRequiredService<IMemberRepository>(),
+            env.Provider.GetRequiredService<IHouseholdRepository>(),
+            new Pbkdf2PasswordHasher(),
+            env.Clock);
+        var fallbackLogin = await fallbackAuth.LoginAsync("branch@lnu.edu.ua", "Secret123");
+        Assert.Equal(LoginStatus.Success, fallbackLogin.Status);
+        Assert.Equal(LoginStatus.InvalidCredentials, (await fallbackAuth.LoginAsync(null!, "Secret123")).Status);
+        await Assert.ThrowsAsync<DomainException>(() => fallbackAuth.SetCredentialsAsync(admin.Id, null!, "Secret123"));
+
+        // Вхід неактивного учасника (IsActive == false -> continue на рядку 69 AuthService.cs)
+        var memberRepo = env.Provider.GetRequiredService<IMemberRepository>();
+        await env.Auth.SetCredentialsAsync(peer.Id, "peer@lnu.edu.ua", "Secret123");
+        peer.IsActive = false;
+        await memberRepo.UpdateAsync(peer);
+        var inactiveLogin = await env.Auth.LoginAsync("peer@lnu.edu.ua", "Secret123");
+        Assert.Equal(LoginStatus.InvalidCredentials, inactiveLogin.Status);
+        peer.IsActive = true;
+        await memberRepo.UpdateAsync(peer);
+
+        // 3. SessionContext без підписників події Changed та коли CurrentMember == null
+        var rawSession = new RoomieSync.Services.Auth.SessionContext();
+        rawSession.UpdateMember(admin); // CurrentMember is null
+        rawSession.UpdateHousehold(h);
+        rawSession.SignIn(admin, h);
+        rawSession.UpdateMember(admin);
+        rawSession.SignOut();
+
+        // 4. HouseholdService із null аргументами у NewHouseholdRequest
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest(null!, "A", "a@b.com", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("H_NullAdmin", null!, "a@b.com", "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("H_NullEmail", "A", null!, "Secret123", new[] { "B" })));
+        await Assert.ThrowsAsync<DomainException>(() => env.Households.CreateHouseholdAsync(
+            new NewHouseholdRequest("H_NullPass", "A", "a@b.com", null!, new[] { "B" })));
+
+        // 5. BalanceService: кредитор ініціює та повторно натискає, боржник підтверджує + невідомі учасники у RecordSettlementAsync
+        var transfer = new Transfer(peer.Id, admin.Id, 25m);
+        var credInit = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, admin.Id);
+        Assert.False(credInit.Settled);
+        var credRepeat = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, admin.Id);
+        Assert.False(credRepeat.Settled);
+        var debtConfirm = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, peer.Id);
+        Assert.True(debtConfirm.Settled);
+        await env.Balances.RecordSettlementAsync(h.Id, new Transfer(Guid.NewGuid(), Guid.NewGuid(), 10m));
+
+        // 6. ChoreService: null Title, InProgress статус, ротація без дедлайну
+        await Assert.ThrowsAsync<DomainException>(() => env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest(null!, null, null, ChoreRotation.None)));
+        var noDeadlineRotating = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("NoDeadlineTask", peer.Id, null, ChoreRotation.Weekly));
+        await env.Chores.ChangeStatusAsync(noDeadlineRotating.Id, ChoreStatus.InProgress);
+        var rotatedFromNoDeadline = await env.Chores.ChangeStatusAsync(noDeadlineRotating.Id, ChoreStatus.Done);
+        Assert.NotNull(rotatedFromNoDeadline);
+
+        // 7. ExpenseService: null Title, валідний ByExactAmount, платник якого немає в репозиторії
+        Assert.False(env.Expenses.Validate(new NewExpenseRequest(null!, 10m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.Equally, new[] { new ShareInput(admin.Id, 1m) })).IsValid);
+        Assert.True(env.Expenses.Validate(new NewExpenseRequest("ExactOk", 30m, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.ByExactAmount, new[] { new ShareInput(admin.Id, 10m), new ShareInput(peer.Id, 20m) })).IsValid);
+        await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest("UnknownPayer", 20m, env.Clock.Now, ExpenseCategory.Other, Guid.NewGuid(), SplitMethod.Equally, new[] { new ShareInput(admin.Id, 1m) }));
+
+        // 8. InMemoryExpenseRepository та InMemoryReportRepository: фільтрація за діапазоном дат + нульова сума + порожній ReportService
+        await env.ExpenseRepo.AddAsync(new Expense { HouseholdId = h.Id, Title = "Zero", Amount = 0m, Date = env.Clock.Now.AddDays(-10), Category = ExpenseCategory.Other, PaidByMemberId = admin.Id });
+        var repRepo = env.Provider.GetRequiredService<IReportRepository>();
+        _ = await repRepo.GetCategorySpendingAsync(h.Id, env.Clock.Now.AddDays(-5), env.Clock.Now.AddDays(-1));
+        _ = await repRepo.GetMemberSpendingAsync(h.Id, env.Clock.Now.AddDays(-5), env.Clock.Now.AddDays(-1));
+        var zeroOnlyHid = Guid.NewGuid();
+        await env.ExpenseRepo.AddAsync(new Expense { HouseholdId = zeroOnlyHid, Title = "ZeroOnly", Amount = 0m, Date = env.Clock.Now, Category = ExpenseCategory.Other, PaidByMemberId = admin.Id });
+        var zeroCats = await repRepo.GetCategorySpendingAsync(zeroOnlyHid);
+        Assert.Equal(0.0, zeroCats.Single().Percentage);
+        var emptyReport = await env.Reports.GetPeriodSummaryAsync(Guid.NewGuid(), env.Clock.Now.AddMonths(-1), env.Clock.Now);
+        Assert.Null(emptyReport.TopCategory);
+
+        // 9. NotificationService із підписником NotificationsChanged та порожнім списком прострочених
+        int notifEvents = 0;
+        env.Notifications.NotificationsChanged += (_, _) => notifEvents++;
+        await env.Notifications.CheckOverdueChoresAsync(Guid.NewGuid());
+        await env.Notifications.NotifyHouseholdAsync(h.Id, NotificationType.NewExpense, "Msg");
+        await env.Notifications.NotifyMemberAsync(h.Id, admin.Id, NotificationType.NewExpense, "Msg");
+        await env.ChoreRepo.AddAsync(new Chore { HouseholdId = h.Id, Title = "OverdueUnassigned", AssigneeId = null, Deadline = env.Clock.Now.AddDays(-2), Status = ChoreStatus.ToDo });
+        await env.Notifications.CheckOverdueChoresAsync(h.Id);
+        await env.Notifications.MarkAllReadAsync(admin.Id);
+        Assert.True(notifEvents >= 4);
+
+        // 10. ExportService (порожній план розрахунків + довга назва > 30 символів + символ > 255) та BackupService ("null" JSON)
+        var tempPdf1 = Path.Combine(Path.GetTempPath(), $"empty_plan_{Guid.NewGuid():N}.pdf");
+        var tempPdf2 = Path.Combine(Path.GetTempPath(), $"long_row_{Guid.NewGuid():N}.pdf");
+        var nullBackup = Path.Combine(Path.GetTempPath(), $"null_{Guid.NewGuid():N}.json");
+        try
+        {
+            await env.Export.ExportSettlementPlanPdfAsync(tempPdf1, "Empty Plan", Array.Empty<(string, string, decimal)>());
+            await env.Export.ExportExpensesPdfAsync(tempPdf2, "Long Title ★", new[]
+            {
+                new ReportRow(DateTime.Today, new string('W', 45) + " ★", "Groceries", "Solomiia", 50m, 25m)
+            });
+            await File.WriteAllTextAsync(nullBackup, "null");
+            await Assert.ThrowsAsync<DomainException>(() => env.Backup.RestoreBackupAsync(nullBackup));
+        }
+        finally
+        {
+            if (File.Exists(tempPdf1)) File.Delete(tempPdf1);
+            if (File.Exists(tempPdf2)) File.Delete(tempPdf2);
+            if (File.Exists(nullBackup)) File.Delete(nullBackup);
+        }
+
+        // 11. GeminiReceiptParser (null text та невалідні типи полів у JSON), MockReceiptParser (null fileName), ReceiptValidationService
+        var nullTextJson = "{\"candidates\": [{\"content\": {\"parts\": [{\"text\": null}]}}]}";
+        using var nullTextClient = new HttpClient(new FakeHttpMessageHandler((_, _) => Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK)
+        {
+            Content = new StringContent(nullTextJson, Encoding.UTF8, "application/json")
+        })));
+        var nullTextParser = new GeminiReceiptParser(nullTextClient, new GeminiOptions { ApiKey = "k" });
+        var emptyParsed = await nullTextParser.ParseReceiptAsync(new byte[] { 1 }, "image/png");
+        Assert.Null(emptyParsed.Merchant);
+
+        var weirdJson = GeminiReceiptParser.ParseJson("{\"merchant\":123,\"total\":\"NaN\",\"date\":456,\"category\":\"UnknownCat\",\"items\":[{\"price\":\"NaN\"}]}");
+        Assert.Single(weirdJson.Items);
+        Assert.Equal(0m, weirdJson.Items[0].Price);
+
+        var mockParser = new MockReceiptParser(new GeminiOptions { UseMock = true }, env.Clock);
+        var mockNullFile = await mockParser.ParseReceiptAsync(new byte[] { 1 }, "image/png", null);
+        Assert.NotNull(mockNullFile);
+
+        var nullTotalWithItems = new ParsedReceipt { Total = null, Merchant = "M", Date = env.Clock.Now, Items = { new ReceiptLineItem { Name = "I", Price = 5m } } };
+        Assert.True(env.Validator.ValidateReceipt(nullTotalWithItems).HasWarnings);
+    }
+
+    private sealed class SingleOnlyAccountRepo(UserAccount account) : IUserAccountRepository
+    {
+        public Task<UserAccount?> GetByEmailAsync(string email, CancellationToken ct = default)
+            => Task.FromResult<UserAccount?>(string.Equals(email, account.Email, StringComparison.OrdinalIgnoreCase) ? account : null);
+        public Task<IReadOnlyList<UserAccount>> GetAllByEmailAsync(string email, CancellationToken ct = default)
+            => Task.FromResult<IReadOnlyList<UserAccount>>(Array.Empty<UserAccount>());
+        public Task<UserAccount?> GetByMemberIdAsync(Guid memberId, CancellationToken ct = default)
+            => Task.FromResult<UserAccount?>(account.MemberId == memberId ? account : null);
+        public Task AddAsync(UserAccount a, CancellationToken ct = default) => Task.CompletedTask;
+        public Task UpdateAsync(UserAccount a, CancellationToken ct = default) => Task.CompletedTask;
+    }
+
     private sealed class FakeHttpMessageHandler(Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> handler) : HttpMessageHandler
     {
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)

@@ -36,16 +36,16 @@
 <div class="card">
 <div class="card-header">Line coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar33">66%</div>
+<div class="large cardpercentagebar cardpercentagebar0">100%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered lines:</th>
-<td class="limit-width right" title="12">12</td>
+<td class="limit-width right" title="18">18</td>
 </tr>
 <tr>
 <th>Uncovered lines:</th>
-<td class="limit-width right" title="6">6</td>
+<td class="limit-width right" title="0">0</td>
 </tr>
 <tr>
 <th>Coverable lines:</th>
@@ -57,7 +57,7 @@
 </tr>
 <tr>
 <th>Line coverage:</th>
-<td class="limit-width right" title="12 of 18">66.6%</td>
+<td class="limit-width right" title="18 of 18">100%</td>
 </tr>
 </table>
 </div>
@@ -66,12 +66,12 @@
 <div class="card">
 <div class="card-header">Branch coverage</div>
 <div class="card-body">
-<div class="large cardpercentagebar cardpercentagebar100">0%</div>
+<div class="large cardpercentagebar cardpercentagebar0">100%</div>
 <div class="table">
 <table>
 <tr>
 <th>Covered branches:</th>
-<td class="limit-width right" title="0">0</td>
+<td class="limit-width right" title="4">4</td>
 </tr>
 <tr>
 <th>Total branches:</th>
@@ -79,7 +79,7 @@
 </tr>
 <tr>
 <th>Branch coverage:</th>
-<td class="limit-width right" title="0 of 4">0%</td>
+<td class="limit-width right" title="4 of 4">100%</td>
 </tr>
 </table>
 </div>
@@ -110,7 +110,7 @@
 <tr><td title=".ctor(RoomieSync.Data.InMemory.InMemoryDataStore)"><a href="#file0_line239" class="navigatetohash">.ctor(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
 <tr><td title="GetForMemberAsync(System.Guid,System.Int32,System.Threading.CancellationToken)"><a href="#file0_line242" class="navigatetohash">GetForMemberAsync(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
 <tr><td title="AddRangeAsync(System.Collections.Generic.IEnumerable`1&lt;RoomieSync.Core.Models.Notification&gt;,System.Threading.CancellationToken)"><a href="#file0_line252" class="navigatetohash">AddRangeAsync(...)</a></td><td>100%</td><td>1</td><td>1</td><td>100%</td></tr>
-<tr><td title="MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)"><a href="#file0_line258" class="navigatetohash">MarkAllReadAsync(...)</a></td><td>0%</td><td>20</td><td>4</td><td>0%</td></tr>
+<tr><td title="MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)"><a href="#file0_line258" class="navigatetohash">MarkAllReadAsync(...)</a></td><td>100%</td><td>4</td><td>4</td><td>100%</td></tr>
 </tbody>
 </table>
 </div>
@@ -358,31 +358,31 @@
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line236"></a><code>236</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line237"></a><code>237</code></td><td></td><td class="lightgray"><code>}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line238"></a><code>238</code></td><td></td><td class="lightgray"><code></code></td></tr>
-<tr class="coverableline" title="Covered (26 visits)" data-coverage="{'AllTestMethods': {'VC': '26', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">26</td><td class="rightmargin right"><a id="file0_line239"></a><code>239</code></td><td></td><td class="lightgreen"><code>public&nbsp;sealed&nbsp;class&nbsp;InMemoryNotificationRepository(InMemoryDataStore&nbsp;store)&nbsp;:&nbsp;INotificationRepository</code></td></tr>
+<tr class="coverableline" title="Covered (64 visits)" data-coverage="{'AllTestMethods': {'VC': '64', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">64</td><td class="rightmargin right"><a id="file0_line239"></a><code>239</code></td><td></td><td class="lightgreen"><code>public&nbsp;sealed&nbsp;class&nbsp;InMemoryNotificationRepository(InMemoryDataStore&nbsp;store)&nbsp;:&nbsp;INotificationRepository</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line240"></a><code>240</code></td><td></td><td class="lightgray"><code>{</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line241"></a><code>241</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;Task&lt;IReadOnlyList&lt;Notification&gt;&gt;&nbsp;GetForMemberAsync(Guid&nbsp;memberId,&nbsp;int&nbsp;take&nbsp;=&nbsp;50,&nbsp;CancellationToken&nbsp;ct&nbsp;=&nbsp;defa</code></td></tr>
-<tr class="coverableline" title="Covered (7 visits)" data-coverage="{'AllTestMethods': {'VC': '7', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">7</td><td class="rightmargin right"><a id="file0_line242"></a><code>242</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Covered (7 visits)" data-coverage="{'AllTestMethods': {'VC': '7', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">7</td><td class="rightmargin right"><a id="file0_line243"></a><code>243</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)</code></td></tr>
-<tr class="coverableline" title="Covered (7 visits)" data-coverage="{'AllTestMethods': {'VC': '7', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">7</td><td class="rightmargin right"><a id="file0_line244"></a><code>244</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Covered (28 visits)" data-coverage="{'AllTestMethods': {'VC': '28', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">28</td><td class="rightmargin right"><a id="file0_line245"></a><code>245</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IReadOnlyList&lt;Notification&gt;&nbsp;list&nbsp;=&nbsp;store.Notifications.Where(n&nbsp;=&gt;&nbsp;n.RecipientMemberId&nbsp;==&nbsp;memberId)</code></td></tr>
-<tr class="coverableline" title="Covered (12 visits)" data-coverage="{'AllTestMethods': {'VC': '12', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">12</td><td class="rightmargin right"><a id="file0_line246"></a><code>246</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.OrderByDescending(n&nbsp;=&gt;&nbsp;n.CreatedAt).Take(take).Select(Clone).ToList();</code></td></tr>
-<tr class="coverableline" title="Covered (7 visits)" data-coverage="{'AllTestMethods': {'VC': '7', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">7</td><td class="rightmargin right"><a id="file0_line247"></a><code>247</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.FromResult(list);</code></td></tr>
+<tr class="coverableline" title="Covered (38 visits)" data-coverage="{'AllTestMethods': {'VC': '38', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">38</td><td class="rightmargin right"><a id="file0_line242"></a><code>242</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
+<tr class="coverableline" title="Covered (38 visits)" data-coverage="{'AllTestMethods': {'VC': '38', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">38</td><td class="rightmargin right"><a id="file0_line243"></a><code>243</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)</code></td></tr>
+<tr class="coverableline" title="Covered (38 visits)" data-coverage="{'AllTestMethods': {'VC': '38', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">38</td><td class="rightmargin right"><a id="file0_line244"></a><code>244</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
+<tr class="coverableline" title="Covered (412 visits)" data-coverage="{'AllTestMethods': {'VC': '412', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">412</td><td class="rightmargin right"><a id="file0_line245"></a><code>245</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;IReadOnlyList&lt;Notification&gt;&nbsp;list&nbsp;=&nbsp;store.Notifications.Where(n&nbsp;=&gt;&nbsp;n.RecipientMemberId&nbsp;==&nbsp;memberId)</code></td></tr>
+<tr class="coverableline" title="Covered (178 visits)" data-coverage="{'AllTestMethods': {'VC': '178', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">178</td><td class="rightmargin right"><a id="file0_line246"></a><code>246</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;.OrderByDescending(n&nbsp;=&gt;&nbsp;n.CreatedAt).Take(take).Select(Clone).ToList();</code></td></tr>
+<tr class="coverableline" title="Covered (38 visits)" data-coverage="{'AllTestMethods': {'VC': '38', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">38</td><td class="rightmargin right"><a id="file0_line247"></a><code>247</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.FromResult(list);</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line248"></a><code>248</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
-<tr class="coverableline" title="Covered (7 visits)" data-coverage="{'AllTestMethods': {'VC': '7', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">7</td><td class="rightmargin right"><a id="file0_line249"></a><code>249</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Covered (38 visits)" data-coverage="{'AllTestMethods': {'VC': '38', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">38</td><td class="rightmargin right"><a id="file0_line249"></a><code>249</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line250"></a><code>250</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line251"></a><code>251</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;Task&nbsp;AddRangeAsync(IEnumerable&lt;Notification&gt;&nbsp;notifications,&nbsp;CancellationToken&nbsp;ct&nbsp;=&nbsp;default)</code></td></tr>
-<tr class="coverableline" title="Covered (1521 visits)" data-coverage="{'AllTestMethods': {'VC': '1521', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1521</td><td class="rightmargin right"><a id="file0_line252"></a><code>252</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Covered (3042 visits)" data-coverage="{'AllTestMethods': {'VC': '3042', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">3042</td><td class="rightmargin right"><a id="file0_line253"></a><code>253</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)&nbsp;store.Notifications.AddRange(notifications.Select(Clone));</code></td></tr>
-<tr class="coverableline" title="Covered (1521 visits)" data-coverage="{'AllTestMethods': {'VC': '1521', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1521</td><td class="rightmargin right"><a id="file0_line254"></a><code>254</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.CompletedTask;</code></td></tr>
-<tr class="coverableline" title="Covered (1521 visits)" data-coverage="{'AllTestMethods': {'VC': '1521', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">1521</td><td class="rightmargin right"><a id="file0_line255"></a><code>255</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Covered (3094 visits)" data-coverage="{'AllTestMethods': {'VC': '3094', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">3094</td><td class="rightmargin right"><a id="file0_line252"></a><code>252</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
+<tr class="coverableline" title="Covered (6188 visits)" data-coverage="{'AllTestMethods': {'VC': '6188', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">6188</td><td class="rightmargin right"><a id="file0_line253"></a><code>253</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)&nbsp;store.Notifications.AddRange(notifications.Select(Clone));</code></td></tr>
+<tr class="coverableline" title="Covered (3094 visits)" data-coverage="{'AllTestMethods': {'VC': '3094', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">3094</td><td class="rightmargin right"><a id="file0_line254"></a><code>254</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.CompletedTask;</code></td></tr>
+<tr class="coverableline" title="Covered (3094 visits)" data-coverage="{'AllTestMethods': {'VC': '3094', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">3094</td><td class="rightmargin right"><a id="file0_line255"></a><code>255</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line256"></a><code>256</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line257"></a><code>257</code></td><td></td><td class="lightgray"><code>&nbsp;&nbsp;&nbsp;&nbsp;public&nbsp;Task&nbsp;MarkAllReadAsync(Guid&nbsp;memberId,&nbsp;CancellationToken&nbsp;ct&nbsp;=&nbsp;default)</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line258"></a><code>258</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line259"></a><code>259</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits, 0 of 4 branches are covered)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line260"></a><code>260</code></td><td class="percentagebar percentagebar0"><i class="icon-fork"></i></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(var&nbsp;n&nbsp;in&nbsp;store.Notifications.Where(n&nbsp;=&gt;&nbsp;n.RecipientMemberId&nbsp;==&nbsp;memberId))</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line261"></a><code>261</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n.IsRead&nbsp;=&nbsp;true;</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line262"></a><code>262</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.CompletedTask;</code></td></tr>
-<tr class="coverableline" title="Not covered (0 visits)" data-coverage="{'AllTestMethods': {'VC': '0', 'LVS': 'red'}}"><td class="red">&nbsp;</td><td class="leftmargin rightmargin right">0</td><td class="rightmargin right"><a id="file0_line263"></a><code>263</code></td><td></td><td class="lightred"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
+<tr class="coverableline" title="Covered (6 visits)" data-coverage="{'AllTestMethods': {'VC': '6', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">6</td><td class="rightmargin right"><a id="file0_line258"></a><code>258</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;{</code></td></tr>
+<tr class="coverableline" title="Covered (6 visits)" data-coverage="{'AllTestMethods': {'VC': '6', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">6</td><td class="rightmargin right"><a id="file0_line259"></a><code>259</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;lock&nbsp;(store.Sync)</code></td></tr>
+<tr class="coverableline" title="Covered (178 visits, 4 of 4 branches are covered)" data-coverage="{'AllTestMethods': {'VC': '178', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">178</td><td class="rightmargin right"><a id="file0_line260"></a><code>260</code></td><td class="percentagebar percentagebar100"><i class="icon-fork"></i></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;foreach&nbsp;(var&nbsp;n&nbsp;in&nbsp;store.Notifications.Where(n&nbsp;=&gt;&nbsp;n.RecipientMemberId&nbsp;==&nbsp;memberId))</code></td></tr>
+<tr class="coverableline" title="Covered (40 visits)" data-coverage="{'AllTestMethods': {'VC': '40', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">40</td><td class="rightmargin right"><a id="file0_line261"></a><code>261</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;n.IsRead&nbsp;=&nbsp;true;</code></td></tr>
+<tr class="coverableline" title="Covered (6 visits)" data-coverage="{'AllTestMethods': {'VC': '6', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">6</td><td class="rightmargin right"><a id="file0_line262"></a><code>262</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;return&nbsp;Task.CompletedTask;</code></td></tr>
+<tr class="coverableline" title="Covered (6 visits)" data-coverage="{'AllTestMethods': {'VC': '6', 'LVS': 'green'}}"><td class="green">&nbsp;</td><td class="leftmargin rightmargin right">6</td><td class="rightmargin right"><a id="file0_line263"></a><code>263</code></td><td></td><td class="lightgreen"><code>&nbsp;&nbsp;&nbsp;&nbsp;}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line264"></a><code>264</code></td><td></td><td class="lightgray"><code>}</code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line265"></a><code>265</code></td><td></td><td class="lightgray"><code></code></td></tr>
 <tr class="" title="Not coverable" data-coverage="{'AllTestMethods': {'VC': '', 'LVS': 'gray'}}"><td class="gray">&nbsp;</td><td class="leftmargin rightmargin right"></td><td class="rightmargin right"><a id="file0_line266"></a><code>266</code></td><td></td><td class="lightgray"><code>public&nbsp;sealed&nbsp;class&nbsp;InMemoryReportRepository(InMemoryDataStore&nbsp;store)&nbsp;:&nbsp;IReportRepository</code></td></tr>
@@ -447,14 +447,14 @@
 </tbody>
 </table>
 </div>
-<div class="footer">Generated by: ReportGenerator 5.5.11.0<br />21.10.2026 - 21:08:35<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
+<div class="footer">Generated by: ReportGenerator 5.5.12.0<br />28.10.2026 - 23:39:40<br /><a href="https://github.com/danielpalme/ReportGenerator">GitHub</a> | <a href="https://reportgenerator.io">reportgenerator.io</a></div></div>
 <div class="containerright">
 <div class="containerrightfixed">
 <h1>Methods/Properties</h1>
 <a href="#file0_line239" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - .ctor(RoomieSync.Data.InMemory.InMemoryDataStore)"><i class="icon-cube"></i>.ctor(RoomieSync.Data.InMemory.InMemoryDataStore)</a><br />
 <a href="#file0_line242" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - GetForMemberAsync(System.Guid,System.Int32,System.Threading.CancellationToken)"><i class="icon-cube"></i>GetForMemberAsync(System.Guid,System.Int32,System.Threading.CancellationToken)</a><br />
 <a href="#file0_line252" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - AddRangeAsync(System.Collections.Generic.IEnumerable`1&lt;RoomieSync.Core.Models.Notification&gt;,System.Threading.CancellationToken)"><i class="icon-cube"></i>AddRangeAsync(System.Collections.Generic.IEnumerable`1&lt;RoomieSync.Core.Models.Notification&gt;,System.Threading.CancellationToken)</a><br />
-<a href="#file0_line258" class="navigatetohash percentagebar percentagebar0" title="Line coverage: 0% - MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)"><i class="icon-cube"></i>MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)</a><br />
+<a href="#file0_line258" class="navigatetohash percentagebar percentagebar100" title="Line coverage: 100% - MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)"><i class="icon-cube"></i>MarkAllReadAsync(System.Guid,System.Threading.CancellationToken)</a><br />
 <br/></div>
 </div></div>
 <script type="text/javascript" src="class.js"></script>

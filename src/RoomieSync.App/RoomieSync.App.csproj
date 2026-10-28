@@ -5,6 +5,8 @@
     <UseWPF>true</UseWPF>
     <RootNamespace>RoomieSync.App</RootNamespace>
     <AssemblyName>RoomieSync</AssemblyName>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
     <ApplicationIcon />
   </PropertyGroup>
   <ItemGroup>

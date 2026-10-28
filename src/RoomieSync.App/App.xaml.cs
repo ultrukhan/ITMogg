@@ -38,7 +38,7 @@ public partial class App : Application
         var configuration = new ConfigurationBuilder()
             .SetBasePath(AppContext.BaseDirectory)
             .AddJsonFile("appsettings.json", optional: true)
-            .AddJsonFile("appsettings.Local.json", optional: true) // локальн≥ секрети (ключ Gemini, пароль Ѕƒ) Ч не ком≥тити
+            .AddJsonFile("appsettings.Local.json", optional: true)
             .AddEnvironmentVariables("ROOMIESYNC_")
             .Build();
 
