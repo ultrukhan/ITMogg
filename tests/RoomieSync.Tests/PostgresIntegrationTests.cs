@@ -1,13 +1,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Data.Seed;
+using static RoomieSync.Tests.TestData;
 
 namespace RoomieSync.Tests;
 
-/// <summary>
-/// Інтеграційний тест ADO.NET-репозиторіїв на справжньому PostgreSQL.
-/// Запускається лише якщо задано змінну ROOMIESYNC_TEST_PG (рядок підключення до ПОРОЖНЬОЇ тестової бази).
-/// </summary>
 public class PostgresIntegrationTests
 {
     private static string? ConnectionString => Environment.GetEnvironmentVariable("ROOMIESYNC_TEST_PG");
@@ -15,31 +12,34 @@ public class PostgresIntegrationTests
     [Fact]
     public async Task Full_flow_on_postgres()
     {
-        if (string.IsNullOrEmpty(ConnectionString)) return; // пропускаємо без бази
-
-        using var sp = TestHost.Build(settings: new()
+        var satisfied = string.IsNullOrEmpty(ConnectionString);
+        if (!satisfied)
         {
-            ["Data:Provider"] = "Postgres",
-            ["ConnectionStrings:RoomieSync"] = ConnectionString
-        });
-        var auth = sp.GetRequiredService<IAuthService>();
-        var login = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
-        Assert.Equal(LoginStatus.Success, login.Status);
+            using var sp = TestHost.Build(settings: new()
+            {
+                ["Data:Provider"] = "Postgres",
+                ["ConnectionStrings:RoomieSync"] = ConnectionString
+            });
+            var auth = sp.GetRequiredService<IAuthService>();
+            var login = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
+            var h = login.Household!.Id;
+            var plan = await sp.GetRequiredService<IBalanceService>().GetSettlementPlanAsync(h);
+            var expenses = await sp.GetRequiredService<IExpenseService>().GetExpensesAsync(h);
+            var chores = await sp.GetRequiredService<IChoreService>().GetChoresAsync(h);
+            var next = await sp.GetRequiredService<IChoreService>().ChangeStatusAsync(
+                chores.First(c => c.Status != Core.Models.ChoreStatus.Done).Id,
+                Core.Models.ChoreStatus.Done);
+            var notifications = await sp.GetRequiredService<INotificationService>().GetNotificationsAsync(login.Member!.Id);
 
-        var h = login.Household!.Id;
-        var balances = sp.GetRequiredService<IBalanceService>();
-        var plan = await balances.GetSettlementPlanAsync(h);
-        Assert.Equal(0m, plan.Balances.Sum(b => b.Balance));
-        Assert.Contains(plan.Balances, b => b.MemberId == login.Member!.Id && b.Balance == 124.50m);
+            satisfied = login.Status == LoginStatus.Success
+                && plan.Balances.Sum(b => b.Balance) == 0m
+                && plan.Balances.Any(b => b.MemberId == login.Member!.Id && b.Balance == MayaSeedBalance)
+                && expenses.Count > 0
+                && expenses.All(e => e.Amount == e.Shares.Sum(s => s.Amount))
+                && next is not null
+                && notifications.Count > 0;
+        }
 
-        var expenses = await sp.GetRequiredService<IExpenseService>().GetExpensesAsync(h);
-        Assert.NotEmpty(expenses);
-        Assert.All(expenses, e => Assert.Equal(e.Amount, e.Shares.Sum(s => s.Amount)));
-
-        var chores = await sp.GetRequiredService<IChoreService>().GetChoresAsync(h);
-        var next = await sp.GetRequiredService<IChoreService>().ChangeStatusAsync(chores.First(c => c.Status != Core.Models.ChoreStatus.Done).Id, Core.Models.ChoreStatus.Done);
-        Assert.NotNull(next);
-
-        Assert.NotEmpty(await sp.GetRequiredService<INotificationService>().GetNotificationsAsync(login.Member!.Id));
+        Assert.True(satisfied);
     }
 }

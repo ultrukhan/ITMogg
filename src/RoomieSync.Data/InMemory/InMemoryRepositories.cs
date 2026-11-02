@@ -141,8 +141,8 @@ public sealed class InMemoryExpenseRepository(InMemoryDataStore store) : IExpens
         {
             IReadOnlyList<Expense> list = store.Expenses
                 .Where(e => e.HouseholdId == householdId
-                            && (from == null || e.Date >= from)
-                            && (to == null || e.Date <= to))
+                            && (from == null || e.Date >= from.Value)
+                            && (to == null || e.Date <= to.Value))
                 .OrderByDescending(e => e.Date).ThenByDescending(e => e.CreatedAt)
                 .Select(Clone).ToList();
             return Task.FromResult(list);
@@ -270,7 +270,7 @@ public sealed class InMemoryReportRepository(InMemoryDataStore store) : IReportR
         lock (store.Sync)
         {
             var filtered = store.Expenses
-                .Where(e => e.HouseholdId == householdId && (from == null || e.Date >= from) && (to == null || e.Date <= to))
+                .Where(e => e.HouseholdId == householdId && (from == null || e.Date >= from.Value) && (to == null || e.Date <= to.Value))
                 .ToList();
             var grandTotal = filtered.Sum(e => e.Amount);
             IReadOnlyList<CategorySpendSummary> list = filtered
@@ -309,7 +309,7 @@ public sealed class InMemoryReportRepository(InMemoryDataStore store) : IReportR
         {
             var members = store.Members.Where(m => m.HouseholdId == householdId && m.IsActive).OrderBy(m => m.JoinedAt).ToList();
             var filtered = store.Expenses
-                .Where(e => e.HouseholdId == householdId && (from == null || e.Date >= from) && (to == null || e.Date <= to))
+                .Where(e => e.HouseholdId == householdId && (from == null || e.Date >= from.Value) && (to == null || e.Date <= to.Value))
                 .ToList();
             IReadOnlyList<MemberSpendSummary> list = members
                 .Select(m => new MemberSpendSummary(
