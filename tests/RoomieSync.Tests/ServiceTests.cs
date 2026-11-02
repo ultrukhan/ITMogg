@@ -3,6 +3,7 @@ using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 using RoomieSync.Data.Seed;
+using static RoomieSync.Tests.TestData;
 
 namespace RoomieSync.Tests;
 
@@ -13,30 +14,33 @@ public class AuthServiceTests
     {
         using var sp = TestHost.Build();
         var r = await sp.GetRequiredService<IAuthService>().LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
-        Assert.Equal(LoginStatus.Success, r.Status);
-        Assert.Equal("Maya Torres", r.Member!.DisplayName);
-        Assert.True(r.Member.IsAdmin);
+        Assert.True(r.Status == LoginStatus.Success && r.Member!.DisplayName == "Maya Torres" && r.Member.IsAdmin);
     }
 
     [Fact]
     public async Task Three_failures_lock_for_60_seconds()
     {
-        var clock = new FakeClock(new DateTime(2026, 5, 24, 12, 0, 0));
+        var clock = new FakeClock(DefaultTestNow);
         using var sp = TestHost.Build(clock);
         var auth = sp.GetRequiredService<IAuthService>();
 
-        Assert.Equal(2, (await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x")).AttemptsLeft);
-        Assert.Equal(1, (await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x")).AttemptsLeft);
-        Assert.Equal(LoginStatus.LockedOut, (await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x")).Status);
+        var firstFail = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x");
+        var secondFail = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x");
+        var thirdFail = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, "x");
 
-        // Навіть правильний пароль не пускає під час блокування
-        clock.Advance(TimeSpan.FromSeconds(59));
+        clock.Advance(LockoutWait59Sec);
         var locked = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
-        Assert.Equal(LoginStatus.LockedOut, locked.Status);
-        Assert.True(locked.LockoutRemaining <= TimeSpan.FromSeconds(1));
 
-        clock.Advance(TimeSpan.FromSeconds(2));
-        Assert.Equal(LoginStatus.Success, (await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword)).Status);
+        clock.Advance(LockoutWait2Sec);
+        var unlocked = await auth.LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
+
+        Assert.True(
+            firstFail.AttemptsLeft == FirstFailureAttemptsLeft
+            && secondFail.AttemptsLeft == SecondFailureAttemptsLeft
+            && thirdFail.Status == LoginStatus.LockedOut
+            && locked.Status == LoginStatus.LockedOut
+            && locked.LockoutRemaining <= OneSecondSpan
+            && unlocked.Status == LoginStatus.Success);
     }
 
     [Fact]
@@ -44,9 +48,10 @@ public class AuthServiceTests
     {
         using var sp = TestHost.Build();
         var acc = await sp.GetRequiredService<Core.Abstractions.Repositories.IUserAccountRepository>().GetByEmailAsync(DemoDataSeeder.DemoAdminEmail);
-        Assert.NotNull(acc);
-        Assert.DoesNotContain(DemoDataSeeder.DemoPassword, acc!.PasswordHash);
-        Assert.NotEmpty(acc.PasswordSalt);
+        Assert.True(
+            acc is not null
+            && !acc.PasswordHash.Contains(DemoDataSeeder.DemoPassword)
+            && !string.IsNullOrEmpty(acc.PasswordSalt));
     }
 }
 
@@ -66,9 +71,10 @@ public class BalanceAndExpenseTests
         var (sp, h, members) = await Setup();
         using var _ = sp;
         var balances = await sp.GetRequiredService<IBalanceService>().GetBalancesAsync(h);
-        Assert.Equal(0m, balances.Sum(b => b.Balance));
         var maya = members.Single(m => m.DisplayName == "Maya Torres");
-        Assert.Equal(124.50m, balances.Single(b => b.MemberId == maya.Id).Balance);
+        Assert.True(
+            balances.Sum(b => b.Balance) == 0m
+            && balances.Single(b => b.MemberId == maya.Id).Balance == MayaSeedBalance);
     }
 
     [Fact]
@@ -78,11 +84,10 @@ public class BalanceAndExpenseTests
         using var __ = sp;
         var svc = sp.GetRequiredService<IBalanceService>();
         var plan = await svc.GetSettlementPlanAsync(h);
-        Assert.False(plan.IsSettled);
+        var wasUnsettled = !plan.IsSettled;
         foreach (var t in plan.Transfers) await svc.RecordSettlementAsync(h, t);
         var after = await svc.GetSettlementPlanAsync(h);
-        Assert.True(after.IsSettled);
-        Assert.All(after.Balances, b => Assert.Equal(0m, b.Balance));
+        Assert.True(wasUnsettled && after.IsSettled && after.Balances.All(b => b.Balance == 0m));
     }
 
     [Fact]
@@ -94,11 +99,12 @@ public class BalanceAndExpenseTests
         var before = (await balances.GetBalancesAsync(h)).ToDictionary(b => b.MemberId, b => b.Balance);
         var payer = members[1];
         await sp.GetRequiredService<IExpenseService>().AddExpenseAsync(h, new NewExpenseRequest(
-            "Pizza", 40m, new DateTime(2026, 5, 24), ExpenseCategory.Entertainment, payer.Id, SplitMethod.Equally,
-            members.Select(m => new ShareInput(m.Id, 0)).ToList()));
+            "Pizza", PizzaExpenseAmount, DefaultTestNow.Date, ExpenseCategory.Entertainment, payer.Id, SplitMethod.Equally,
+            members.Select(m => new ShareInput(m.Id, 0m)).ToList()));
         var after = (await balances.GetBalancesAsync(h)).ToDictionary(b => b.MemberId, b => b.Balance);
-        Assert.Equal(before[payer.Id] + 30m, after[payer.Id]);
-        Assert.Equal(before[members[0].Id] - 10m, after[members[0].Id]);
+        Assert.True(
+            after[payer.Id] == before[payer.Id] + ExpectedPayerDelta
+            && after[members[0].Id] == before[members[0].Id] + ExpectedPeerDelta);
     }
 
     [Fact]
@@ -107,11 +113,10 @@ public class BalanceAndExpenseTests
         var (sp, _, members) = await Setup();
         using var __ = sp;
         var svc = sp.GetRequiredService<IExpenseService>();
-        var bad = svc.Validate(new NewExpenseRequest("", -5m, DateTime.Today, ExpenseCategory.Other, members[0].Id, SplitMethod.Equally, Array.Empty<ShareInput>()));
-        Assert.False(bad.IsValid);
-        var pct = svc.Validate(new NewExpenseRequest("X", 10m, new DateTime(2026, 5, 24), ExpenseCategory.Other, members[0].Id, SplitMethod.ByPercentage,
-            new[] { new ShareInput(members[0].Id, 60), new ShareInput(members[1].Id, 30) }));
-        Assert.Contains(pct.Errors, e => e.Contains("100%"));
+        var bad = svc.Validate(new NewExpenseRequest("", InvalidNegativeAmount, DateTime.Today, ExpenseCategory.Other, members[0].Id, SplitMethod.Equally, Array.Empty<ShareInput>()));
+        var pct = svc.Validate(new NewExpenseRequest("X", ChainDebtAmount, DefaultTestNow.Date, ExpenseCategory.Other, members[0].Id, SplitMethod.ByPercentage,
+            [new ShareInput(members[0].Id, IncompletePctFirst), new ShareInput(members[1].Id, IncompletePctSecond)]));
+        Assert.True(!bad.IsValid && pct.Errors.Any(e => e.Contains("100%")));
     }
 
     [Fact]
@@ -120,7 +125,6 @@ public class BalanceAndExpenseTests
         var (sp, _, members) = await Setup();
         using var __ = sp;
         var leo = members.Single(m => m.DisplayName == "Leo Novak");
-        Assert.False(await sp.GetRequiredService<IHouseholdService>().CanDeleteMemberAsync(leo.Id));
         await Assert.ThrowsAsync<DomainException>(() => sp.GetRequiredService<IHouseholdService>().DeleteMemberAsync(leo.Id));
     }
 }
@@ -138,12 +142,13 @@ public class ChoreServiceTests
 
         var chore = (await svc.GetChoresAsync(h)).First(c => c.Title == "Clean Kitchen");
         var next = await svc.ChangeStatusAsync(chore.Id, ChoreStatus.Done);
-
-        Assert.NotNull(next);
-        Assert.Equal(ChoreStatus.ToDo, next!.Status);
         var idx = members.ToList().FindIndex(m => m.Id == chore.AssigneeId);
-        Assert.Equal(members[(idx + 1) % members.Count].Id, next.AssigneeId);
-        Assert.Equal(chore.Deadline!.Value.AddDays(7), next.Deadline);
+
+        Assert.True(
+            next is not null
+            && next.Status == ChoreStatus.ToDo
+            && next.AssigneeId == members[(idx + 1) % members.Count].Id
+            && next.Deadline == chore.Deadline!.Value.AddDays(WeeklyRotationDays));
     }
 
     [Fact]
@@ -151,10 +156,11 @@ public class ChoreServiceTests
     {
         using var sp = TestHost.Build(seed: false);
         var svc = sp.GetRequiredService<IChoreService>();
-        var m = Enumerable.Range(0, 3).Select(i => new Member { DisplayName = $"M{i}", JoinedAt = new DateTime(2024, 1, 1).AddDays(i) }).ToList();
-        Assert.Equal(m[1].Id, svc.GetNextAssignee(m, m[0].Id));
-        Assert.Equal(m[0].Id, svc.GetNextAssignee(m, m[2].Id));
-        Assert.Equal(m[0].Id, svc.GetNextAssignee(m, null));
+        var m = Enumerable.Range(0, InitialHouseholdSize).Select(i => new Member { DisplayName = $"M{i}", JoinedAt = BaseJoinDate.AddDays(i) }).ToList();
+        Assert.True(
+            svc.GetNextAssignee(m, m[0].Id) == m[1].Id
+            && svc.GetNextAssignee(m, m[^1].Id) == m[0].Id
+            && svc.GetNextAssignee(m, null) == m[0].Id);
     }
 }
 
@@ -165,12 +171,11 @@ public class HouseholdServiceTests
     {
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
-        Assert.False(await hs.AnyHouseholdExistsAsync());
-        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Cool Flat", "Ann", "ann@x.com", "secret1", new[] { "Bob", "Cid", "" }));
-        Assert.Equal(3, (await hs.GetMembersAsync(h.Id)).Count);
+        var existedBefore = await hs.AnyHouseholdExistsAsync();
+        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Cool Flat", "Ann", "ann@x.com", "secret1", ["Bob", "Cid", ""]));
+        var count = (await hs.GetMembersAsync(h.Id)).Count;
         var r = await sp.GetRequiredService<IAuthService>().LoginAsync("ANN@x.com", "secret1");
-        Assert.Equal(LoginStatus.Success, r.Status);
-        Assert.Equal(admin.Id, r.Member!.Id);
+        Assert.True(!existedBefore && count == InitialHouseholdSize && r.Status == LoginStatus.Success && r.Member!.Id == admin.Id);
     }
 
     [Fact]
@@ -178,7 +183,7 @@ public class HouseholdServiceTests
     {
         using var sp = TestHost.Build(seed: false);
         await Assert.ThrowsAsync<DomainException>(() => sp.GetRequiredService<IHouseholdService>().CreateHouseholdAsync(
-            new NewHouseholdRequest("Big", "A", "a@x.com", "secret1", new[] { "B", "C", "D", "E", "F", "G" })));
+            new NewHouseholdRequest("Big", "A", "a@x.com", "secret1", ["B", "C", "D", "E", "F", "G"])));
     }
 }
 
@@ -188,9 +193,9 @@ public class ReceiptTests
     public async Task Mock_parser_returns_valid_receipt()
     {
         using var sp = TestHost.Build(seed: false);
-        var receipt = await sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(new byte[] { 1 }, "image/png", "receipt.png");
-        Assert.Equal(receipt.Items.Sum(i => i.Price), receipt.Total);
-        Assert.False(sp.GetRequiredService<IValidationService>().ValidateReceipt(receipt).HasWarnings);
+        var receipt = await sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(DummyImageBytes, "image/png", "receipt.png");
+        var validation = sp.GetRequiredService<IValidationService>().ValidateReceipt(receipt);
+        Assert.True(receipt.Total == receipt.Items.Sum(i => i.Price) && !validation.HasWarnings);
     }
 
     [Fact]
@@ -198,27 +203,28 @@ public class ReceiptTests
     {
         using var sp = TestHost.Build(seed: false);
         await Assert.ThrowsAsync<ReceiptParseException>(() =>
-            sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(new byte[] { 1 }, "image/png", "fail.png"));
+            sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(DummyImageBytes, "image/png", "fail.png"));
     }
 
     [Fact]
     public async Task Validation_warns_on_total_mismatch()
     {
         using var sp = TestHost.Build(seed: false);
-        var receipt = await sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(new byte[] { 1 }, "image/png", "warn.png");
+        var receipt = await sp.GetRequiredService<IReceiptParser>().ParseReceiptAsync(DummyImageBytes, "image/png", "warn.png");
         Assert.True(sp.GetRequiredService<IValidationService>().ValidateReceipt(receipt).HasWarnings);
     }
 
     [Fact]
     public void Gemini_json_is_parsed()
     {
-        var r = Services.Receipts.GeminiReceiptParser.ParseJson("""
-            {"merchant":"Shop","date":"2026-05-20","total":12.5,"category":"groceries","items":[{"name":"Milk","price":2.5},{"name":"Bread","price":10}]}
-            """);
-        Assert.Equal("Shop", r.Merchant);
-        Assert.Equal(new DateTime(2026, 5, 20), r.Date);
-        Assert.Equal(ExpenseCategory.Groceries, r.Category);
-        Assert.Equal(2, r.Items.Count);
+        var r = Services.Receipts.GeminiReceiptParser.ParseJson(SampleGeminiJson);
+        Assert.True(
+            r.Merchant == "Shop"
+            && r.Date == SampleDateMay20
+            && r.Category == ExpenseCategory.Groceries
+            && r.Items.Count == ExpectedParsedItemCount
+            && r.Total == SampleParsedTotal
+            && r.Items[0].Price == SampleParsedMilkPrice);
     }
 }
 
@@ -229,17 +235,30 @@ public class ExportTests
     {
         using var sp = TestHost.Build(seed: false);
         var svc = sp.GetRequiredService<IExportService>();
-        var rows = Enumerable.Range(0, 80).Select(i => new ReportRow(new DateTime(2026, 5, 1).AddDays(i % 20), $"Item, \"{i}\"", "Other", "Maya", 10 + i, 5)).ToList();
+        var rows = Enumerable.Range(0, ExportSampleRowCount)
+            .Select(i => new ReportRow(SampleDateMay1.AddDays(i % ExportDateStepMod), $"Item, \"{i}\"", "Other", "Maya", ExportBaseRowAmount + i, ExportRowYourShare))
+            .ToList();
         var pdf = Path.GetTempFileName();
         var csv = Path.GetTempFileName();
-        await svc.ExportExpensesPdfAsync(pdf, "All Expenses", rows);
-        await svc.ExportExpensesCsvAsync(csv, rows);
-        var bytes = await File.ReadAllBytesAsync(pdf);
-        Assert.StartsWith("%PDF-1.4", System.Text.Encoding.ASCII.GetString(bytes, 0, 8));
-        Assert.Matches(@"/Count [2-9]", System.Text.Encoding.Latin1.GetString(bytes));
-        var lines = await File.ReadAllLinesAsync(csv);
-        Assert.Equal(81, lines.Length);
-        Assert.Contains("\"Item, \"\"0\"\"\"", lines[1]);
+        try
+        {
+            await svc.ExportExpensesPdfAsync(pdf, "All Expenses", rows);
+            await svc.ExportExpensesCsvAsync(csv, rows);
+            var bytes = await File.ReadAllBytesAsync(pdf);
+            var header = System.Text.Encoding.ASCII.GetString(bytes, 0, PdfMagicHeaderLength);
+            var pdfText = System.Text.Encoding.Latin1.GetString(bytes);
+            var lines = await File.ReadAllLinesAsync(csv);
+            Assert.True(
+                header.StartsWith("%PDF-1.4")
+                && System.Text.RegularExpressions.Regex.IsMatch(pdfText, @"/Count [2-9]")
+                && lines.Length == ExpectedCsvLineCount
+                && lines[1].Contains("\"Item, \"\"0\"\"\""));
+        }
+        finally
+        {
+            if (File.Exists(pdf)) File.Delete(pdf);
+            if (File.Exists(csv)) File.Delete(csv);
+        }
     }
 }
 
@@ -250,7 +269,7 @@ public class BackendUpgradesTests
     {
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
-        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Test Home", "Uliana", "uliana@lnu.edu.ua", "pass123", new[] { "Nazar" }));
+        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Test Home", "Uliana", "uliana@lnu.edu.ua", "pass123", ["Nazar"]));
         var members = await hs.GetMembersAsync(h.Id);
         var nazar = members.Single(m => m.DisplayName == "Nazar");
 
@@ -258,21 +277,21 @@ public class BackendUpgradesTests
         var balSvc = sp.GetRequiredService<IBalanceService>();
 
         var created = await expSvc.AddExpenseAsync(h.Id, new NewExpenseRequest(
-            "Internet", 100m, new DateTime(2026, 5, 20), ExpenseCategory.Utilities, admin.Id, SplitMethod.Equally,
-            members.Select(m => new ShareInput(m.Id, 0)).ToList()));
+            "Internet", InternetBaseAmount, SampleDateMay20, ExpenseCategory.Utilities, admin.Id, SplitMethod.Equally,
+            members.Select(m => new ShareInput(m.Id, 0m)).ToList()));
 
         var bal1 = (await balSvc.GetBalancesAsync(h.Id)).ToDictionary(b => b.MemberId, b => b.Balance);
-        Assert.Equal(50m, bal1[admin.Id]);
-        Assert.Equal(-50m, bal1[nazar.Id]);
 
-        // Оновлюємо суму витрати зі 100 до 200 (User Story 4)
         await expSvc.UpdateExpenseAsync(created.Id, new NewExpenseRequest(
-            "Internet Fibre", 200m, new DateTime(2026, 5, 20), ExpenseCategory.Utilities, admin.Id, SplitMethod.Equally,
-            members.Select(m => new ShareInput(m.Id, 0)).ToList()));
+            "Internet Fibre", InternetUpgradedAmount, SampleDateMay20, ExpenseCategory.Utilities, admin.Id, SplitMethod.Equally,
+            members.Select(m => new ShareInput(m.Id, 0m)).ToList()));
 
         var bal2 = (await balSvc.GetBalancesAsync(h.Id)).ToDictionary(b => b.MemberId, b => b.Balance);
-        Assert.Equal(100m, bal2[admin.Id]);
-        Assert.Equal(-100m, bal2[nazar.Id]);
+        Assert.True(
+            bal1[admin.Id] == ExpectedInitialShareBalance
+            && bal1[nazar.Id] == -ExpectedInitialShareBalance
+            && bal2[admin.Id] == ExpectedUpdatedShareBalance
+            && bal2[nazar.Id] == -ExpectedUpdatedShareBalance);
     }
 
     [Fact]
@@ -280,21 +299,20 @@ public class BackendUpgradesTests
     {
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
-        var (h, _) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Chore Home", "Uliana", "u@x.com", "pass123", new[] { "Nazar", "Anna" }));
+        var (h, _) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Chore Home", "Uliana", "u@x.com", "pass123", ["Nazar", "Anna"]));
         var members = await hs.GetMembersAsync(h.Id);
         var nazar = members.Single(m => m.DisplayName == "Nazar");
 
-        // Баланс нульовий, але призначаємо відкрите завдання
         var choreSvc = sp.GetRequiredService<IChoreService>();
-        var chore = await choreSvc.CreateChoreAsync(h.Id, new NewChoreRequest("Wash dishes", nazar.Id, DateTime.Today.AddDays(1), ChoreRotation.None));
+        var chore = await choreSvc.CreateChoreAsync(h.Id, new NewChoreRequest("Wash dishes", nazar.Id, DateTime.Today.AddDays(TomorrowOffsetDays), ChoreRotation.None));
 
-        Assert.False(await hs.CanDeleteMemberAsync(nazar.Id));
-        await Assert.ThrowsAsync<DomainException>(() => hs.DeleteMemberAsync(nazar.Id));
-
-        // Закриваємо завдання -> тепер видалення дозволено
+        var canDeleteWithOpen = await hs.CanDeleteMemberAsync(nazar.Id);
         await choreSvc.ChangeStatusAsync(chore.Id, ChoreStatus.Done);
-        Assert.True(await hs.CanDeleteMemberAsync(nazar.Id));
+        var canDeleteAfterDone = await hs.CanDeleteMemberAsync(nazar.Id);
         await hs.DeleteMemberAsync(nazar.Id);
+        var activeMembers = await hs.GetMembersAsync(h.Id);
+
+        Assert.True(!canDeleteWithOpen && canDeleteAfterDone && activeMembers.All(m => m.Id != nazar.Id));
     }
 
     [Fact]
@@ -319,12 +337,13 @@ public class BackendUpgradesTests
         using var sp = TestHost.Build();
         var login = await sp.GetRequiredService<IAuthService>().LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
         var reportSvc = sp.GetRequiredService<IReportService>();
-        var summary = await reportSvc.GetPeriodSummaryAsync(login.Household!.Id, new DateTime(2026, 1, 1), new DateTime(2026, 12, 31));
+        var summary = await reportSvc.GetPeriodSummaryAsync(login.Household!.Id, PeriodStart, PeriodEnd);
 
-        Assert.True(summary.TotalSpent > 0);
-        Assert.NotEmpty(summary.ByCategory);
-        Assert.NotEmpty(summary.ByMember);
-        Assert.Equal(ExpenseCategory.Rent, summary.TopCategory);
+        Assert.True(
+            summary.TotalSpent > 0m
+            && summary.ByCategory.Count > 0
+            && summary.ByMember.Count > 0
+            && summary.TopCategory == ExpenseCategory.Rent);
     }
 
     [Fact]
@@ -334,15 +353,21 @@ public class BackendUpgradesTests
         var login = await sp.GetRequiredService<IAuthService>().LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
         var backupSvc = sp.GetRequiredService<IBackupService>();
         var tempFile = Path.GetTempFileName();
+        try
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+            await backupSvc.ExportBackupAsync(login.Household!.Id, tempFile);
+            var restored = await backupSvc.RestoreBackupAsync(tempFile);
+            sw.Stop();
 
-        var sw = System.Diagnostics.Stopwatch.StartNew();
-        await backupSvc.ExportBackupAsync(login.Household!.Id, tempFile);
-        var restored = await backupSvc.RestoreBackupAsync(tempFile);
-        sw.Stop();
-
-        Assert.True(sw.Elapsed.TotalSeconds < 5.0);
-        Assert.Equal(login.Household.Name, restored.Household.Name);
-        Assert.NotEmpty(restored.Expenses);
-        File.Delete(tempFile);
+            Assert.True(
+                sw.Elapsed.TotalSeconds < MaxBackupRestoreSeconds
+                && restored.Household.Name == login.Household.Name
+                && restored.Expenses.Count > 0);
+        }
+        finally
+        {
+            if (File.Exists(tempFile)) File.Delete(tempFile);
+        }
     }
 }

@@ -33,8 +33,8 @@ public sealed class MockReceiptParser(GeminiOptions options, IClock clock) : IRe
                 new ReceiptLineItem { Name = "Fresh Vegetables", Price = 7.17m },
             }
         };
-        receipt.Total = receipt.Items.Sum(i => i.Price);
-        if (name.Contains("warn")) receipt.Total += 10m;
+        var sum = receipt.Items.Sum(i => i.Price);
+        receipt.Total = name.Contains("warn") ? sum + 10m : sum;
         return receipt;
     }
 }
