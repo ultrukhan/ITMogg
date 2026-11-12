@@ -3,7 +3,6 @@
     <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- Дозволяє збирати WPF-проєкт на Linux/macOS (CI, контейнери). Запуск можливий лише на Windows. -->
     <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
   </PropertyGroup>
