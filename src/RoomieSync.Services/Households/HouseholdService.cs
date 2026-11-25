@@ -25,28 +25,23 @@ public sealed class HouseholdService(
         NewHouseholdRequest request,
         CancellationToken ct = default)
     {
-        var name = request.HouseholdName?.Trim() ?? string.Empty;
-        if (name.Length == 0)
-            throw new DomainException("Household name is required.");
+        if (request is null)
+            throw new DomainException("Household setup request is required.");
 
+        var name = InputValidator.ValidateHouseholdName(request.HouseholdName);
         if (await households.GetByNameAsync(name, ct) is not null)
             throw new DomainException("A household with this name already exists.");
 
-        var adminName = request.AdminName?.Trim() ?? string.Empty;
-        if (adminName.Length == 0)
-            throw new DomainException("Your name is required.");
+        var adminName = InputValidator.ValidateMemberName(request.AdminName);
+        var adminEmail = InputValidator.ValidateEmail(request.AdminEmail);
+        InputValidator.ValidatePassword(request.AdminPassword);
 
-        var adminEmail = request.AdminEmail?.Trim() ?? string.Empty;
-        if (!adminEmail.Contains('@') || adminEmail.Length < 5)
-            throw new DomainException("Enter a valid email address.");
-
-        var adminPassword = request.AdminPassword ?? string.Empty;
-        if (adminPassword.Length < 6)
-            throw new DomainException("Password must be at least 6 characters.");
+        if (request.MemberNames is null)
+            throw new DomainException("Member list is required.");
 
         var memberNames = request.MemberNames
-            .Select(n => n.Trim())
-            .Where(n => n.Length > 0)
+            .Where(n => !string.IsNullOrWhiteSpace(n))
+            .Select(InputValidator.ValidateMemberName)
             .ToList();
 
         var total = memberNames.Count + 1;
@@ -64,7 +59,7 @@ public sealed class HouseholdService(
 
         var currency = string.IsNullOrWhiteSpace(request.Currency)
             ? "UAH"
-            : request.Currency.Trim().ToUpperInvariant();
+            : InputValidator.ValidateCurrencyCode(request.Currency);
 
         var now = clock.Now;
         var household = new Household { Name = name, Currency = currency, CreatedAt = now };
@@ -81,7 +76,7 @@ public sealed class HouseholdService(
             IsEmailConfirmed = true
         };
         await members.AddAsync(admin, ct);
-        await auth.SetCredentialsAsync(admin.Id, adminEmail, adminPassword, ct);
+        await auth.SetCredentialsAsync(admin.Id, adminEmail, request.AdminPassword, ct);
 
         for (var i = 0; i < memberNames.Count; i++)
         {
@@ -102,9 +97,8 @@ public sealed class HouseholdService(
         string newName,
         CancellationToken ct = default)
     {
-        newName = newName.Trim();
-        if (newName.Length == 0)
-            throw new DomainException("Household name is required.");
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        newName = InputValidator.ValidateHouseholdName(newName);
 
         var existing = await households.GetByNameAsync(newName, ct);
         if (existing is not null && existing.Id != householdId)
@@ -123,9 +117,8 @@ public sealed class HouseholdService(
         string currencyCode,
         CancellationToken ct = default)
     {
-        currencyCode = string.IsNullOrWhiteSpace(currencyCode)
-            ? "UAH"
-            : currencyCode.Trim().ToUpperInvariant();
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        currencyCode = InputValidator.ValidateCurrencyCode(currencyCode);
 
         var h = await households.GetByIdAsync(householdId, ct)
             ?? throw new DomainException("Household not found.");
@@ -139,16 +132,21 @@ public sealed class HouseholdService(
     public Task<IReadOnlyList<Member>> GetMembersAsync(
         Guid householdId,
         CancellationToken ct = default)
-        => members.GetByHouseholdAsync(householdId, false, ct);
+    {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        return members.GetByHouseholdAsync(householdId, false, ct);
+    }
 
     public async Task<Member> AddMemberAsync(
         Guid householdId,
         string displayName,
         CancellationToken ct = default)
     {
-        displayName = displayName.Trim();
-        if (displayName.Length == 0)
-            throw new DomainException("Member name is required.");
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        displayName = InputValidator.ValidateMemberName(displayName);
+
+        _ = await households.GetByIdAsync(householdId, ct)
+            ?? throw new DomainException("Household not found.");
 
         var current = await members.GetByHouseholdAsync(householdId, false, ct);
         if (current.Count >= Household.MaxMembers)
@@ -175,9 +173,8 @@ public sealed class HouseholdService(
         string newName,
         CancellationToken ct = default)
     {
-        newName = newName.Trim();
-        if (newName.Length == 0)
-            throw new DomainException("Member name is required.");
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
+        newName = InputValidator.ValidateMemberName(newName);
 
         var m = await members.GetByIdAsync(memberId, ct)
             ?? throw new DomainException("Member not found.");
@@ -196,6 +193,8 @@ public sealed class HouseholdService(
         Guid memberId,
         CancellationToken ct = default)
     {
+        if (memberId == Guid.Empty) return false;
+
         var m = await members.GetByIdAsync(memberId, ct);
         if (m is null || m.IsAdmin) return false;
 
@@ -213,6 +212,8 @@ public sealed class HouseholdService(
         Guid memberId,
         CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
+
         if (!await CanDeleteMemberAsync(memberId, ct))
             throw new DomainException(
                 "Cannot delete a member with active debts, open chores, or the household admin.");

@@ -8,7 +8,12 @@ public static class SplitCalculator
 {
     public static IReadOnlyList<ExpenseShare> Calculate(decimal amount, SplitMethod method, IReadOnlyList<ShareInput> inputs)
     {
-        if (inputs.Count == 0) return Array.Empty<ExpenseShare>();
+        if (inputs is null || inputs.Count == 0) return Array.Empty<ExpenseShare>();
+        if (amount < 0 || !InputValidator.HasValidScale(amount))
+            throw new DomainException("Expense amount for split calculation must be non-negative and have at most 2 decimal places.");
+        if (inputs.Any(s => s.MemberId == Guid.Empty || s.Value < 0 || !InputValidator.HasValidScale(s.Value)))
+            throw new DomainException("Split inputs must contain valid member IDs, non-negative values, and at most 2 decimal places.");
+
         var totalCents = Money.ToCents(amount);
 
         switch (method)

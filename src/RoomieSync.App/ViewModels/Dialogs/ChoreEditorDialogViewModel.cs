@@ -64,20 +64,23 @@ public sealed partial class ChoreEditorDialogViewModel : DialogViewModel
     private DateTime? Deadline()
     {
         if (DeadlineDate is not { } d) return null;
-        return TimeSpan.TryParse(DeadlineTime, out var t) ? d.Date + t : d.Date.AddHours(18);
+        if (string.IsNullOrWhiteSpace(DeadlineTime)) return d.Date.AddHours(18);
+        if (!TimeOnly.TryParseExact(DeadlineTime.Trim(), new[] { "H:mm", "HH:mm" }, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var time))
+            throw new DomainException("Enter a valid time in 24-hour HH:mm format (00:00–23:59).");
+        return d.Date + time.ToTimeSpan();
     }
 
     protected override async Task<bool> OnConfirmAsync()
     {
-        if (string.IsNullOrWhiteSpace(ChoreTitle)) throw new DomainException(Loc.Get("S.Chores.TitleRequired"));
+        var validTitle = InputValidator.ValidateChoreTitle(ChoreTitle);
         if (_existing is null)
         {
-            await _chores.CreateChoreAsync(_householdId, new NewChoreRequest(ChoreTitle, SelectedAssignee.Member?.Id, Deadline(), SelectedRotation.Value));
+            await _chores.CreateChoreAsync(_householdId, new NewChoreRequest(validTitle, SelectedAssignee.Member?.Id, Deadline(), SelectedRotation.Value));
         }
         else
         {
             var statusChanged = _existing.Status != SelectedStatus.Value;
-            _existing.Title = ChoreTitle.Trim();
+            _existing.Title = validTitle;
             _existing.AssigneeId = SelectedAssignee.Member?.Id;
             _existing.Deadline = Deadline();
             _existing.Rotation = SelectedRotation.Value;

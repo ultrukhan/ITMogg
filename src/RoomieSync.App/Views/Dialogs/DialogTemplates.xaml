@@ -35,7 +35,7 @@
     <DataTemplate DataType="{x:Type d:ChoreEditorDialogViewModel}">
         <StackPanel>
             <TextBlock Text="{DynamicResource S.Chores.TaskName}" Style="{StaticResource Label}" />
-            <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE9D5;" h:Input.Placeholder="{DynamicResource S.Chores.TaskPlaceholder}"
+            <TextBox Style="{StaticResource InputBox}" MaxLength="200" h:Input.Icon="&#xE9D5;" h:Input.Placeholder="{DynamicResource S.Chores.TaskPlaceholder}"
                      Text="{Binding ChoreTitle, UpdateSourceTrigger=PropertyChanged}" />
 
             <TextBlock Text="{DynamicResource S.Chores.AssignedTo}" Style="{StaticResource Label}" Margin="0,14,0,7" />
@@ -53,7 +53,7 @@
                 </StackPanel>
                 <StackPanel Grid.Column="2">
                     <TextBlock Text="{DynamicResource S.Chores.Time}" Style="{StaticResource Label}" />
-                    <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE823;" h:Input.Placeholder="18:00"
+                    <TextBox Style="{StaticResource InputBox}" MaxLength="5" h:Input.Icon="&#xE823;" h:Input.Placeholder="18:00"
                              Text="{Binding DeadlineTime, UpdateSourceTrigger=PropertyChanged}" />
                 </StackPanel>
             </Grid>
@@ -115,14 +115,14 @@
     <DataTemplate DataType="{x:Type d:MemberEditDialogViewModel}">
         <StackPanel>
             <TextBlock Text="{DynamicResource S.Settings.Name}" Style="{StaticResource Label}" />
-            <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE77B;" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox Style="{StaticResource InputBox}" MaxLength="100" h:Input.Icon="&#xE77B;" Text="{Binding DisplayName, UpdateSourceTrigger=PropertyChanged}" />
 
             <Border Style="{StaticResource Divider}" Margin="0,18" />
             <TextBlock Text="{DynamicResource S.Settings.LoginTitle}" Style="{StaticResource Label}" Margin="0,0,0,2" />
             <TextBlock Text="{DynamicResource S.Settings.LoginHint}" Style="{StaticResource Caption}" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,10" />
-            <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
+            <TextBox Style="{StaticResource InputBox}" MaxLength="254" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
                      Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" />
-            <PasswordBox Style="{StaticResource InputPassword}" Margin="0,8,0,0" h:Input.Icon="&#xE72E;" h:Input.Placeholder="{DynamicResource S.Settings.NewPassword}"
+            <PasswordBox Style="{StaticResource InputPassword}" MaxLength="128" Margin="0,8,0,0" h:Input.Icon="&#xE72E;" h:Input.Placeholder="{DynamicResource S.Settings.NewPassword}"
                          h:PasswordBoxHelper.BoundPassword="{Binding Password, UpdateSourceTrigger=PropertyChanged}" />
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,22,0,0">

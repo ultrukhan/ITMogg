@@ -25,7 +25,7 @@
                 <TextBlock Text="{DynamicResource S.Setup.Subtitle}" Style="{StaticResource Muted}" HorizontalAlignment="Center" Margin="0,4,0,22" />
 
                 <TextBlock Text="{DynamicResource S.Setup.HouseholdName}" Style="{StaticResource Label}" />
-                <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE80F;" h:Input.Placeholder="{DynamicResource S.Setup.HouseholdPlaceholder}"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="100" h:Input.Icon="&#xE80F;" h:Input.Placeholder="{DynamicResource S.Setup.HouseholdPlaceholder}"
                          Text="{Binding HouseholdName, UpdateSourceTrigger=PropertyChanged}" />
 
                 <Border Style="{StaticResource Divider}" Margin="0,22" />
@@ -33,15 +33,15 @@
                 
                 <TextBlock Text="{DynamicResource S.Setup.YourAccount}" Style="{StaticResource Label}" Margin="0,0,0,2" />
                 <TextBlock Text="{DynamicResource S.Setup.YourAccountHint}" Style="{StaticResource Caption}" FontSize="11" Margin="0,0,0,10" TextWrapping="Wrap" />
-                <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE77B;" h:Input.Placeholder="{DynamicResource S.Setup.YourName}"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="100" h:Input.Icon="&#xE77B;" h:Input.Placeholder="{DynamicResource S.Setup.YourName}"
                          Text="{Binding AdminName, UpdateSourceTrigger=PropertyChanged}" />
-                <TextBox Style="{StaticResource InputBox}" Margin="0,8,0,0" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="254" Margin="0,8,0,0" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
                          Text="{Binding AdminEmail, UpdateSourceTrigger=PropertyChanged}" />
                 <UniformGrid Columns="2" Margin="0,8,0,0">
-                    <PasswordBox Style="{StaticResource InputPassword}" Margin="0,0,4,0" h:Input.Icon="&#xE72E;"
+                    <PasswordBox Style="{StaticResource InputPassword}" MaxLength="128" Margin="0,0,4,0" h:Input.Icon="&#xE72E;"
                                  h:Input.Placeholder="{DynamicResource S.Setup.Password}"
                                  h:PasswordBoxHelper.BoundPassword="{Binding AdminPassword, UpdateSourceTrigger=PropertyChanged}" />
-                    <PasswordBox Style="{StaticResource InputPassword}" Margin="4,0,0,0" h:Input.Icon="&#xE72E;"
+                    <PasswordBox Style="{StaticResource InputPassword}" MaxLength="128" Margin="4,0,0,0" h:Input.Icon="&#xE72E;"
                                  h:Input.Placeholder="{DynamicResource S.Setup.ConfirmPassword}"
                                  h:PasswordBoxHelper.BoundPassword="{Binding ConfirmPassword, UpdateSourceTrigger=PropertyChanged}" />
                 </UniformGrid>
@@ -58,7 +58,7 @@
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
-                                <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE77B;" h:Input.Placeholder="{DynamicResource S.Setup.MemberName}"
+                                <TextBox Style="{StaticResource InputBox}" MaxLength="100" h:Input.Icon="&#xE77B;" h:Input.Placeholder="{DynamicResource S.Setup.MemberName}"
                                          Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" />
                                 <Button Grid.Column="1" Style="{StaticResource IconButton}" Width="40" Height="40" Margin="8,0,0,0" Content="&#xE74D;"
                                         ToolTip="{DynamicResource S.Common.Remove}"

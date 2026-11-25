@@ -36,14 +36,18 @@ public sealed class AuthService : IAuthService
         string password,
         CancellationToken ct = default)
     {
-        email = email?.Trim() ?? string.Empty;
-        if (email.Length == 0 || string.IsNullOrEmpty(password))
+        if (!InputValidator.TryNormalizeEmail(email, out var normalizedEmail, out _)
+            || string.IsNullOrEmpty(password)
+            || password.Length > InputValidator.MaxPasswordLength
+            || InputValidator.ContainsControlChars(password))
+        {
             return new LoginResult(LoginStatus.InvalidCredentials, AttemptsLeft: MaxFailedAttempts);
+        }
 
-        var allAccounts = await _accounts.GetAllByEmailAsync(email, ct);
+        var allAccounts = await _accounts.GetAllByEmailAsync(normalizedEmail, ct);
         if (allAccounts.Count == 0)
         {
-            var single = await _accounts.GetByEmailAsync(email, ct);
+            var single = await _accounts.GetByEmailAsync(normalizedEmail, ct);
             if (single is not null)
                 allAccounts = new[] { single };
         }
@@ -111,15 +115,15 @@ public sealed class AuthService : IAuthService
         string password,
         CancellationToken ct = default)
     {
-        email = email?.Trim() ?? string.Empty;
-        if (!email.Contains('@') || email.Length < 5)
-            throw new DomainException("Enter a valid email address.");
-
-        if (string.IsNullOrEmpty(password) || password.Length < 6)
-            throw new DomainException("Password must be at least 6 characters.");
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
+        email = InputValidator.ValidateEmail(email);
+        InputValidator.ValidatePassword(password);
 
         var targetMember = await _members.GetByIdAsync(memberId, ct)
             ?? throw new DomainException("Member not found.");
+
+        if (!targetMember.IsActive)
+            throw new DomainException("Cannot set credentials for an inactive member.");
 
         var existingByEmail = await _accounts.GetAllByEmailAsync(email, ct);
         foreach (var acc in existingByEmail)
@@ -162,12 +166,16 @@ public sealed class AuthService : IAuthService
     public async Task<string?> GetEmailAsync(
         Guid memberId,
         CancellationToken ct = default)
-        => (await _accounts.GetByMemberIdAsync(memberId, ct))?.Email;
+    {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
+        return (await _accounts.GetByMemberIdAsync(memberId, ct))?.Email;
+    }
 
     public async Task ConfirmMembershipAsync(
         Guid memberId,
         CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
         var member = await _members.GetByIdAsync(memberId, ct);
         if (member is null) return;
 
@@ -179,6 +187,7 @@ public sealed class AuthService : IAuthService
         Guid memberId,
         CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
         var currentAcc = await _accounts.GetByMemberIdAsync(memberId, ct);
         if (currentAcc is null)
             return Array.Empty<(Household, Member)>();

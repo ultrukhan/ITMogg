@@ -1,4 +1,5 @@
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
@@ -7,6 +8,8 @@ public sealed class MockReceiptParser(GeminiOptions options, IClock clock) : IRe
 {
     public async Task<ParsedReceipt> ParseReceiptAsync(byte[] image, string mimeType, string? fileName = null, CancellationToken ct = default)
     {
+        InputValidator.ValidateReceiptPayload(image, mimeType);
+
         var name = (fileName ?? string.Empty).ToLowerInvariant();
         if (name.Contains("slow"))
         {

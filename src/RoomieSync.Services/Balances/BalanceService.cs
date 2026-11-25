@@ -18,26 +18,33 @@ public sealed class BalanceService(
 
     public async Task<IReadOnlyList<MemberBalance>> GetBalancesAsync(Guid householdId, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
         var (balances, _) = await ComputeAsync(householdId, ct);
         return balances;
     }
 
     public async Task<SettlementPlan> GetSettlementPlanAsync(Guid householdId, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
         var (balances, pairwise) = await ComputeAsync(householdId, ct);
         var transfers = simplifier.Simplify(balances);
         return new SettlementPlan(transfers, balances, pairwise);
     }
 
     public bool HasPendingConfirmation(Guid householdId, Transfer transfer, out Guid confirmedByMemberId)
-        => _pendingConfirmations.TryGetValue((householdId, transfer.FromMemberId, transfer.ToMemberId), out confirmedByMemberId);
+    {
+        if (householdId == Guid.Empty || transfer is null || transfer.FromMemberId == Guid.Empty || transfer.ToMemberId == Guid.Empty)
+        {
+            confirmedByMemberId = Guid.Empty;
+            return false;
+        }
+        return _pendingConfirmations.TryGetValue((householdId, transfer.FromMemberId, transfer.ToMemberId), out confirmedByMemberId);
+    }
 
     public async Task<SettlementActionResult> InitiateOrConfirmSettlementAsync(Guid householdId, Transfer transfer, Guid actorMemberId, CancellationToken ct = default)
     {
-        if (transfer.Amount <= 0) throw new DomainException("Settlement amount must be positive.");
-
-        var from = await members.GetByIdAsync(transfer.FromMemberId, ct) ?? throw new DomainException("Debtor not found.");
-        var to = await members.GetByIdAsync(transfer.ToMemberId, ct) ?? throw new DomainException("Creditor not found.");
+        InputValidator.RequireNonEmptyGuid(actorMemberId, "Actor member ID");
+        var (from, to) = await ValidateTransferAsync(householdId, transfer, ct);
 
         if (actorMemberId != transfer.FromMemberId && actorMemberId != transfer.ToMemberId)
             throw new DomainException($"Only {from.FirstName} (debtor) or {to.FirstName} (creditor) can mark this debt as paid.");
@@ -72,7 +79,8 @@ public sealed class BalanceService(
 
     public async Task<Settlement> RecordSettlementAsync(Guid householdId, Transfer transfer, CancellationToken ct = default)
     {
-        if (transfer.Amount <= 0) throw new DomainException("Settlement amount must be positive.");
+        var (from, to) = await ValidateTransferAsync(householdId, transfer, ct);
+
         var s = new Settlement
         {
             HouseholdId = householdId,
@@ -83,18 +91,14 @@ public sealed class BalanceService(
         };
         await settlements.AddAsync(s, ct);
 
-        var from = await members.GetByIdAsync(transfer.FromMemberId, ct);
-        var to = await members.GetByIdAsync(transfer.ToMemberId, ct);
         await notifications.NotifyHouseholdAsync(householdId, NotificationType.SettlementRecorded,
-            $"{from?.FirstName} paid {to?.FirstName} {MoneyFormat.Format(s.Amount)}", null, ct);
+            $"{from.FirstName} paid {to.FirstName} {MoneyFormat.Format(s.Amount)}", null, ct);
         return s;
     }
 
     public async Task RequestSettlementAsync(Guid householdId, Transfer transfer, CancellationToken ct = default)
     {
-        if (transfer.Amount <= 0) throw new DomainException("Settlement request amount must be positive.");
-        var debtor = await members.GetByIdAsync(transfer.FromMemberId, ct) ?? throw new DomainException("Debtor not found.");
-        var creditor = await members.GetByIdAsync(transfer.ToMemberId, ct) ?? throw new DomainException("Creditor not found.");
+        var (debtor, creditor) = await ValidateTransferAsync(householdId, transfer, ct);
 
         await notifications.NotifyMemberAsync(
             householdId,
@@ -105,7 +109,33 @@ public sealed class BalanceService(
     }
 
     public Task<IReadOnlyList<Settlement>> GetSettlementsAsync(Guid householdId, CancellationToken ct = default)
-        => settlements.GetByHouseholdAsync(householdId, ct);
+    {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        return settlements.GetByHouseholdAsync(householdId, ct);
+    }
+
+    private async Task<(Member From, Member To)> ValidateTransferAsync(Guid householdId, Transfer transfer, CancellationToken ct)
+    {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        if (transfer is null)
+            throw new DomainException("Transfer details are required.");
+
+        InputValidator.RequireNonEmptyGuid(transfer.FromMemberId, "Debtor ID");
+        InputValidator.RequireNonEmptyGuid(transfer.ToMemberId, "Creditor ID");
+
+        if (transfer.FromMemberId == transfer.ToMemberId)
+            throw new DomainException("A member cannot settle a debt with themselves.");
+
+        InputValidator.ValidatePositiveMoney(transfer.Amount, "Settlement amount");
+
+        var from = await members.GetByIdAsync(transfer.FromMemberId, ct) ?? throw new DomainException("Debtor not found.");
+        var to = await members.GetByIdAsync(transfer.ToMemberId, ct) ?? throw new DomainException("Creditor not found.");
+
+        if (from.HouseholdId != householdId || to.HouseholdId != householdId)
+            throw new DomainException("Both settlement participants must belong to this household.");
+
+        return (from, to);
+    }
 
     private async Task<(IReadOnlyList<MemberBalance>, int)> ComputeAsync(Guid householdId, CancellationToken ct)
     {
