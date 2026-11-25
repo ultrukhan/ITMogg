@@ -271,7 +271,14 @@ public sealed partial class AddExpenseViewModel : PageViewModel
         }
         catch (IOException ex)
         {
-            ReceiptError = ex.Message;
+            TechnicalErrorLog.Write(ex, nameof(LoadReceiptAsync));
+            ReceiptError = UnexpectedErrorMessage;
+            IsScanMode = false;
+        }
+        catch (Exception ex)
+        {
+            TechnicalErrorLog.Write(ex, nameof(LoadReceiptAsync));
+            ReceiptError = UnexpectedErrorMessage;
             IsScanMode = false;
         }
         finally

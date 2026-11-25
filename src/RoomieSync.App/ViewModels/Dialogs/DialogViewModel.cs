@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using RoomieSync.App.ViewModels;
 using RoomieSync.Core.Common;
 
 namespace RoomieSync.App.ViewModels.Dialogs;
@@ -39,7 +40,8 @@ public abstract partial class DialogViewModel : ObservableObject
         }
         catch (Exception ex)
         {
-            Error = ex.Message;
+            TechnicalErrorLog.Write(ex, GetType().Name);
+            Error = ViewModelBase.UnexpectedErrorMessage;
         }
         finally
         {

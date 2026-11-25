@@ -8,6 +8,7 @@ using RoomieSync.App.Services;
 using RoomieSync.App.ViewModels;
 using RoomieSync.App.ViewModels.Pages;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Data;
 using RoomieSync.Services;
 
@@ -29,7 +30,8 @@ public partial class App : Application
 
         DispatcherUnhandledException += (_, args) =>
         {
-            MessageBox.Show(args.Exception.Message, "RoomieSync", MessageBoxButton.OK, MessageBoxImage.Error);
+            TechnicalErrorLog.Write(args.Exception, "WPF dispatcher");
+            MessageBox.Show(ViewModelBase.UnexpectedErrorMessage, "RoomieSync", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
 
@@ -58,7 +60,8 @@ public partial class App : Application
         }
         catch (Exception ex)
         {
-            MessageBox.Show(Loc.Format("S.App.DataError", ex.Message), "RoomieSync", MessageBoxButton.OK, MessageBoxImage.Error);
+            TechnicalErrorLog.Write(ex, "Application startup");
+            MessageBox.Show(ViewModelBase.UnexpectedErrorMessage, "RoomieSync", MessageBoxButton.OK, MessageBoxImage.Error);
             Shutdown(1);
         }
     }
