@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
@@ -18,7 +19,12 @@ public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) 
     public async Task<ParsedReceipt> ParseReceiptAsync(byte[] image, string mimeType, string? fileName = null, CancellationToken ct = default)
     {
         var key = options.ResolveApiKey();
-        if (string.IsNullOrWhiteSpace(key)) throw new ReceiptParseException("Gemini API key is not configured.");
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            var exception = new ReceiptParseException("Gemini API key is not configured.");
+            TechnicalErrorLog.Write(exception, nameof(ParseReceiptAsync));
+            throw exception;
+        }
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
@@ -54,11 +60,18 @@ public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) 
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
-            throw new ReceiptParseException($"Receipt recognition took longer than {options.TimeoutSeconds} seconds.", isTimeout: true);
+            var exception = new ReceiptParseException($"Receipt recognition took longer than {options.TimeoutSeconds} seconds.", isTimeout: true);
+            TechnicalErrorLog.Write(exception, nameof(ParseReceiptAsync));
+            throw exception;
         }
-        catch (ReceiptParseException) { throw; }
+        catch (ReceiptParseException ex)
+        {
+            TechnicalErrorLog.Write(ex, nameof(ParseReceiptAsync));
+            throw;
+        }
         catch (Exception ex)
         {
+            TechnicalErrorLog.Write(ex, nameof(ParseReceiptAsync));
             throw new ReceiptParseException("Could not recognize the receipt.", inner: ex);
         }
     }

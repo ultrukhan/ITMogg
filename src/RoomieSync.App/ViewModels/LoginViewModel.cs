@@ -15,15 +15,17 @@ public sealed partial class LoginViewModel : ViewModelBase
     private readonly ISessionContext _session;
     private readonly IAppNavigator _navigator;
     private readonly IDialogService _dialogs;
+    private readonly IToastService _toast;
     private readonly DispatcherTimer _lockTimer = new() { Interval = TimeSpan.FromSeconds(1) };
     private DateTime _lockedUntil;
 
-    public LoginViewModel(IAuthService auth, ISessionContext session, IAppNavigator navigator, IDialogService dialogs, DataOptions dataOptions)
+    public LoginViewModel(IAuthService auth, ISessionContext session, IAppNavigator navigator, IDialogService dialogs, IToastService toast, DataOptions dataOptions)
     {
         _auth = auth;
         _session = session;
         _navigator = navigator;
         _dialogs = dialogs;
+        _toast = toast;
         ShowDemoHint = dataOptions.SeedDemoData;
         _lockTimer.Tick += (_, _) => UpdateLockout();
     }
@@ -80,7 +82,7 @@ public sealed partial class LoginViewModel : ViewModelBase
                         : Loc.Get("S.Login.Invalid");
                     break;
             }
-        });
+        }, _toast);
     }
 
     [RelayCommand]

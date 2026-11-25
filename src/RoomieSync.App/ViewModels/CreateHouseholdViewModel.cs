@@ -3,6 +3,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using RoomieSync.App.Localization;
 using RoomieSync.App.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Models;
 
@@ -45,7 +46,12 @@ public sealed partial class CreateHouseholdViewModel : ViewModelBase
 	private async Task CheckExistingAsync()
 	{
 		try { CanGoBack = await _households.AnyHouseholdExistsAsync(); }
-		catch { CanGoBack = true; }
+		catch (Exception ex)
+		{
+			TechnicalErrorLog.Write(ex, nameof(CheckExistingAsync));
+			CanGoBack = true;
+			ErrorMessage = UnexpectedErrorMessage;
+		}
 	}
 
 	[RelayCommand]
@@ -89,9 +95,14 @@ public sealed partial class CreateHouseholdViewModel : ViewModelBase
 			AdminPassword = ConfirmPassword = string.Empty;
 			await _navigator.ShowShellAsync();
 		}
-		catch (Exception ex)
+		catch (DomainException ex)
 		{
 			ErrorMessage = ex.Message;
+		}
+		catch (Exception ex)
+		{
+			TechnicalErrorLog.Write(ex, nameof(CompleteSetup));
+			ErrorMessage = UnexpectedErrorMessage;
 		}
 		finally
 		{

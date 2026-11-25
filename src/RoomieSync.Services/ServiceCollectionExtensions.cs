@@ -34,16 +34,27 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IChoreService, ChoreService>();
         services.AddSingleton<INotificationService, NotificationService>();
         services.AddSingleton<IValidationService, ReceiptValidationService>();
-        services.AddSingleton<IExportService, ExportService>();
+        services.AddLoggedSingleton<IExportService, ExportService>();
         services.AddSingleton<IReportService, ReportService>();
-        services.AddSingleton<IBackupService, BackupService>();
-        services.AddSingleton<IReceiptStorageService>(_ => new ReceiptStorageService());
+        services.AddLoggedSingleton<IBackupService, BackupService>();
+        services.AddSingleton<IReceiptStorageService>(provider =>
+            ExceptionLoggingProxy<IReceiptStorageService>.Create(new ReceiptStorageService()));
 
         if (gemini.UseMock || string.IsNullOrWhiteSpace(gemini.ResolveApiKey()))
             services.AddSingleton<IReceiptParser, MockReceiptParser>();
         else
             services.AddHttpClient<IReceiptParser, GeminiReceiptParser>();
 
+        return services;
+    }
+
+    private static IServiceCollection AddLoggedSingleton<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        services.AddSingleton<TImplementation>();
+        services.AddSingleton<TService>(provider =>
+            ExceptionLoggingProxy<TService>.Create(provider.GetRequiredService<TImplementation>()));
         return services;
     }
 }

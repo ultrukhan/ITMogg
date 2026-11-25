@@ -6,6 +6,8 @@ namespace RoomieSync.App.ViewModels;
 
 public abstract partial class ViewModelBase : ObservableObject
 {
+    public const string UnexpectedErrorMessage = "The operation could not be completed for technical reasons. Please try again later.";
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -23,8 +25,8 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         catch (Exception ex)
         {
-            toast?.Show("Something went wrong: " + ex.Message, ToastKind.Error);
-            System.Diagnostics.Debug.WriteLine(ex);
+            TechnicalErrorLog.Write(ex, GetType().Name);
+            toast?.Show(UnexpectedErrorMessage, ToastKind.Error);
         }
         finally
         {

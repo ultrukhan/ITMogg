@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using RoomieSync.Core.Abstractions.Repositories;
+using RoomieSync.Core.Common;
 using RoomieSync.Data.InMemory;
 using RoomieSync.Data.Postgres;
 using RoomieSync.Data.Seed;
@@ -36,29 +37,39 @@ public static class DataServiceCollectionExtensions
             var cs = configuration.GetConnectionString("RoomieSync") ?? string.Empty;
             services.AddSingleton<IDbConnectionFactory>(_ => new NpgsqlConnectionFactory(cs));
             services.AddSingleton<DatabaseInitializer>();
-            services.AddSingleton<IHouseholdRepository, PgHouseholdRepository>();
-            services.AddSingleton<IMemberRepository, PgMemberRepository>();
-            services.AddSingleton<IUserAccountRepository, PgUserAccountRepository>();
-            services.AddSingleton<IExpenseRepository, PgExpenseRepository>();
-            services.AddSingleton<ISettlementRepository, PgSettlementRepository>();
-            services.AddSingleton<IChoreRepository, PgChoreRepository>();
-            services.AddSingleton<INotificationRepository, PgNotificationRepository>();
-            services.AddSingleton<IReportRepository, PgReportRepository>();
+            services.AddLoggedSingleton<IHouseholdRepository, PgHouseholdRepository>();
+            services.AddLoggedSingleton<IMemberRepository, PgMemberRepository>();
+            services.AddLoggedSingleton<IUserAccountRepository, PgUserAccountRepository>();
+            services.AddLoggedSingleton<IExpenseRepository, PgExpenseRepository>();
+            services.AddLoggedSingleton<ISettlementRepository, PgSettlementRepository>();
+            services.AddLoggedSingleton<IChoreRepository, PgChoreRepository>();
+            services.AddLoggedSingleton<INotificationRepository, PgNotificationRepository>();
+            services.AddLoggedSingleton<IReportRepository, PgReportRepository>();
         }
         else
         {
             services.AddSingleton<InMemoryDataStore>();
-            services.AddSingleton<IHouseholdRepository, InMemoryHouseholdRepository>();
-            services.AddSingleton<IMemberRepository, InMemoryMemberRepository>();
-            services.AddSingleton<IUserAccountRepository, InMemoryUserAccountRepository>();
-            services.AddSingleton<IExpenseRepository, InMemoryExpenseRepository>();
-            services.AddSingleton<ISettlementRepository, InMemorySettlementRepository>();
-            services.AddSingleton<IChoreRepository, InMemoryChoreRepository>();
-            services.AddSingleton<INotificationRepository, InMemoryNotificationRepository>();
-            services.AddSingleton<IReportRepository, InMemoryReportRepository>();
+            services.AddLoggedSingleton<IHouseholdRepository, InMemoryHouseholdRepository>();
+            services.AddLoggedSingleton<IMemberRepository, InMemoryMemberRepository>();
+            services.AddLoggedSingleton<IUserAccountRepository, InMemoryUserAccountRepository>();
+            services.AddLoggedSingleton<IExpenseRepository, InMemoryExpenseRepository>();
+            services.AddLoggedSingleton<ISettlementRepository, InMemorySettlementRepository>();
+            services.AddLoggedSingleton<IChoreRepository, InMemoryChoreRepository>();
+            services.AddLoggedSingleton<INotificationRepository, InMemoryNotificationRepository>();
+            services.AddLoggedSingleton<IReportRepository, InMemoryReportRepository>();
         }
 
         services.AddSingleton<DemoDataSeeder>();
+        return services;
+    }
+
+    private static IServiceCollection AddLoggedSingleton<TService, TImplementation>(this IServiceCollection services)
+        where TService : class
+        where TImplementation : class, TService
+    {
+        services.AddSingleton<TImplementation>();
+        services.AddSingleton<TService>(provider =>
+            ExceptionLoggingProxy<TService>.Create(provider.GetRequiredService<TImplementation>()));
         return services;
     }
 
