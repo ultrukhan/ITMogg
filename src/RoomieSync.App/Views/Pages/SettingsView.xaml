@@ -19,7 +19,7 @@
                 <StackPanel>
                     <TextBlock Text="{DynamicResource S.Settings.HouseholdInfo}" Style="{StaticResource CardTitle}" Margin="0,0,0,16" />
                     <TextBlock Text="{DynamicResource S.Setup.HouseholdName}" Style="{StaticResource Label}" />
-                    <TextBox Style="{StaticResource SoftInputBox}" Width="320" HorizontalAlignment="Left"
+                    <TextBox Style="{StaticResource SoftInputBox}" MaxLength="100" Width="320" HorizontalAlignment="Left"
                              Text="{Binding HouseholdName, UpdateSourceTrigger=PropertyChanged}" IsEnabled="{Binding IsAdmin}" />
                     <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left" Margin="0,14,0,0" Padding="16,8" FontSize="12"
                             Content="{DynamicResource S.Settings.SaveChanges}" Command="{Binding SaveHouseholdCommand}" IsEnabled="{Binding IsAdmin}" />
@@ -88,7 +88,7 @@
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="Auto" />
                         </Grid.ColumnDefinitions>
-                        <TextBox Style="{StaticResource SoftInputBox}" h:Input.Placeholder="{DynamicResource S.Settings.MemberPlaceholder}"
+                        <TextBox Style="{StaticResource SoftInputBox}" MaxLength="100" h:Input.Placeholder="{DynamicResource S.Settings.MemberPlaceholder}"
                                  Text="{Binding NewMemberName, UpdateSourceTrigger=PropertyChanged}" />
                         <Button Grid.Column="1" Style="{StaticResource PrimaryButton}" Margin="10,0,0,0" Command="{Binding AddMemberCommand}">
                             <StackPanel Orientation="Horizontal">

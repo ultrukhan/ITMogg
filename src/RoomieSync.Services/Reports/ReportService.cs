@@ -1,5 +1,6 @@
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Reports;
@@ -8,6 +9,12 @@ public sealed class ReportService(IReportRepository reports) : IReportService
 {
     public async Task<HouseholdReportSummary> GetPeriodSummaryAsync(Guid householdId, DateTime from, DateTime to, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        if (from.Date < InputValidator.MinAllowedDate || to.Date < InputValidator.MinAllowedDate)
+            throw new DomainException($"Report dates cannot be earlier than {InputValidator.MinAllowedDate:yyyy-MM-dd}.");
+        if (from.Date > to.Date)
+            throw new DomainException("Report start date cannot be after end date.");
+
         var byCategory = await reports.GetCategorySpendingAsync(householdId, from, to, ct);
         var byMonth = await reports.GetMonthlySpendingAsync(householdId, from, to, ct);
         var byMember = await reports.GetMemberSpendingAsync(householdId, from, to, ct);

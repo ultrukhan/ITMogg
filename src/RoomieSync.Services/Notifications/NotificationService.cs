@@ -1,5 +1,6 @@
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Notifications;
@@ -13,29 +14,44 @@ public sealed class NotificationService(
     public event EventHandler? NotificationsChanged;
 
     public Task<IReadOnlyList<Notification>> GetNotificationsAsync(Guid memberId, CancellationToken ct = default)
-        => notifications.GetForMemberAsync(memberId, 50, ct);
+    {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
+        return notifications.GetForMemberAsync(memberId, 50, ct);
+    }
 
     public async Task NotifyHouseholdAsync(Guid householdId, NotificationType type, string message, Guid? exceptMemberId = null, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        if (!Enum.IsDefined(type))
+            throw new DomainException("Invalid notification type.");
+
+        var validMessage = InputValidator.ValidateNotificationMessage(message);
         var recipients = (await members.GetByHouseholdAsync(householdId, false, ct)).Where(m => m.Id != exceptMemberId);
         await notifications.AddRangeAsync(recipients.Select(m => new Notification
         {
-            HouseholdId = householdId, RecipientMemberId = m.Id, Type = type, Message = message, CreatedAt = clock.Now
+            HouseholdId = householdId, RecipientMemberId = m.Id, Type = type, Message = validMessage, CreatedAt = clock.Now
         }).ToList(), ct);
         NotificationsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task NotifyMemberAsync(Guid householdId, Guid memberId, NotificationType type, string message, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
+        InputValidator.RequireNonEmptyGuid(memberId, "Recipient member ID");
+        if (!Enum.IsDefined(type))
+            throw new DomainException("Invalid notification type.");
+
+        var validMessage = InputValidator.ValidateNotificationMessage(message);
         await notifications.AddRangeAsync(new[]
         {
-            new Notification { HouseholdId = householdId, RecipientMemberId = memberId, Type = type, Message = message, CreatedAt = clock.Now }
+            new Notification { HouseholdId = householdId, RecipientMemberId = memberId, Type = type, Message = validMessage, CreatedAt = clock.Now }
         }, ct);
         NotificationsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     public async Task CheckOverdueChoresAsync(Guid householdId, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(householdId, "Household ID");
         var now = clock.Now;
         var overdue = (await chores.GetByHouseholdAsync(householdId, ct)).Where(c => c.IsOverdue(now)).ToList();
         if (overdue.Count == 0) return;
@@ -60,6 +76,7 @@ public sealed class NotificationService(
 
     public async Task MarkAllReadAsync(Guid memberId, CancellationToken ct = default)
     {
+        InputValidator.RequireNonEmptyGuid(memberId, "Member ID");
         await notifications.MarkAllReadAsync(memberId, ct);
         NotificationsChanged?.Invoke(this, EventArgs.Empty);
     }

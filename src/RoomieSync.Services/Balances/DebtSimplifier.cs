@@ -4,15 +4,21 @@ using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Balances;
 
-
 public sealed class DebtSimplifier : IDebtSimplifier
 {
     public IReadOnlyList<Transfer> Simplify(IEnumerable<MemberBalance> balances)
     {
+        if (balances is null)
+            throw new DomainException("Balances collection is required.");
+
         var creditors = new List<(Guid Id, long Cents)>();
         var debtors = new List<(Guid Id, long Cents)>();
         foreach (var b in balances)
         {
+            InputValidator.RequireNonEmptyGuid(b.MemberId, "Member ID");
+            if (!InputValidator.HasValidScale(b.Balance))
+                throw new DomainException("Member balance cannot have more than 2 decimal places.");
+
             var c = Money.ToCents(b.Balance);
             if (c > 0) creditors.Add((b.MemberId, c));
             else if (c < 0) debtors.Add((b.MemberId, -c));

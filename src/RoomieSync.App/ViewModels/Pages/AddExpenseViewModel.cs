@@ -110,17 +110,18 @@ public sealed partial class AddExpenseViewModel : PageViewModel
 
     public static decimal? ParseDecimal(string? text)
     {
-        if (string.IsNullOrWhiteSpace(text)) return null;
+        if (string.IsNullOrWhiteSpace(text) || InputValidator.ContainsControlChars(text)) return null;
         text = text.Trim()
+            .Replace("zł", "", StringComparison.OrdinalIgnoreCase)
             .Replace("$", "")
-            .Replace("?", "")
+            .Replace("₴", "")
+            .Replace("€", "")
             .Replace("£", "")
-            .Replace("?", "")
-            .Replace("z?", "")
             .Replace("%", "")
             .Replace(" ", "")
             .Replace(',', '.');
-        return decimal.TryParse(text, NumberStyles.Number, CultureInfo.InvariantCulture, out var v) ? v : null;
+        const NumberStyles style = NumberStyles.AllowLeadingSign | NumberStyles.AllowDecimalPoint;
+        return decimal.TryParse(text, style, CultureInfo.InvariantCulture, out var v) ? v : null;
     }
 
     public override async Task LoadAsync(object? parameter)
@@ -181,6 +182,7 @@ public sealed partial class AddExpenseViewModel : PageViewModel
             var selected = Splits.Where(s => s.IsSelected).ToList();
             SelectedCount = selected.Count;
             var amount = Amount;
+            var previewAmount = amount > 0 ? Money.Round(Math.Min(amount, InputValidator.MaxMoneyAmount)) : 0m;
 
             foreach (var s in Splits)
             {
@@ -197,7 +199,7 @@ public sealed partial class AddExpenseViewModel : PageViewModel
             {
                 if (SplitMethod == SplitMethod.Equally || resetInputs)
                 {
-                    var equal = _expenses.CalculateShares(amount, SplitMethod.Equally, selected.Select(s => new ShareInput(s.Member.Id, 0)).ToList());
+                    var equal = _expenses.CalculateShares(previewAmount, SplitMethod.Equally, selected.Select(s => new ShareInput(s.Member.Id, 0)).ToList());
                     for (var i = 0; i < selected.Count; i++)
                     {
                         selected[i].ValueText = SplitMethod switch
@@ -213,7 +215,8 @@ public sealed partial class AddExpenseViewModel : PageViewModel
                     }
                 }
 
-                var shares = _expenses.CalculateShares(amount, SplitMethod, selected.Select(s => new ShareInput(s.Member.Id, s.Value)).ToList());
+                var safeInputs = selected.Select(s => new ShareInput(s.Member.Id, Math.Max(0m, Money.Round(Math.Min(s.Value, InputValidator.MaxMoneyAmount))))).ToList();
+                var shares = _expenses.CalculateShares(previewAmount, SplitMethod, safeInputs);
                 for (var i = 0; i < selected.Count; i++) selected[i].ComputedAmount = shares[i].Amount;
                 SplitTotal = shares.Sum(s => s.Amount);
             }
@@ -222,9 +225,11 @@ public sealed partial class AddExpenseViewModel : PageViewModel
                 SplitTotal = 0;
             }
 
-            SplitMatches = SplitMethod == SplitMethod.ByPercentage
+            var validInputs = InputValidator.HasValidScale(amount)
+                              && selected.All(s => s.Value >= 0 && InputValidator.HasValidScale(s.Value));
+            SplitMatches = validInputs && (SplitMethod == SplitMethod.ByPercentage
                 ? Math.Abs(selected.Sum(s => s.Value) - 100m) < 0.01m && selected.Count > 0
-                : selected.Count > 0 && SplitTotal == Money.Round(amount) && amount > 0;
+                : selected.Count > 0 && SplitTotal == Money.Round(amount) && amount > 0);
             OnPropertyChanged(nameof(SelectedText));
             OnPropertyChanged(nameof(SplitTotalText));
         }
@@ -247,6 +252,22 @@ public sealed partial class AddExpenseViewModel : PageViewModel
         ReceiptWarnings.Clear();
         ReceiptItems.Clear();
         HasParsedReceipt = false;
+
+        if (!InputValidator.IsValidReceiptPath(path) || !File.Exists(path))
+        {
+            ReceiptError = "Unsupported or missing receipt file. Choose a valid JPG, PNG, or PDF file.";
+            IsScanMode = false;
+            return;
+        }
+
+        var fileInfo = new FileInfo(path);
+        if (fileInfo.Length is <= 0 or > InputValidator.MaxSingleReceiptBytes)
+        {
+            ReceiptError = "Receipt file cannot be empty or larger than 20 MB.";
+            IsScanMode = false;
+            return;
+        }
+
         ReceiptPath = path;
         ReceiptFileName = Path.GetFileName(path);
         IsScanMode = true;
@@ -319,6 +340,12 @@ public sealed partial class AddExpenseViewModel : PageViewModel
         }
 
         var selected = Splits.Where(s => s.IsSelected).ToList();
+        if (SplitMethod != SplitMethod.Equally && selected.Any(s => ParseDecimal(s.ValueText) is null))
+        {
+            Errors.Add("Enter valid numeric values for all selected participant shares.");
+            return;
+        }
+
         var request = new NewExpenseRequest(
             Title, Amount, Date ?? _clock.Now.Date, SelectedCategory.Value ?? ExpenseCategory.Other,
             PaidBy?.Id ?? Guid.Empty, SplitMethod,

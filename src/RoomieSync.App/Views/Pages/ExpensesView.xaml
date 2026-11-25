@@ -27,7 +27,7 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox Style="{StaticResource InputBox}" Height="38" h:Input.Icon="&#xE721;" h:Input.Placeholder="{DynamicResource S.Expenses.Search}"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="100" Height="38" h:Input.Icon="&#xE721;" h:Input.Placeholder="{DynamicResource S.Expenses.Search}"
                          Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged, Delay=200}" />
                 <StackPanel Grid.Column="2" Orientation="Horizontal">
                     <ComboBox Style="{StaticResource FilterComboBox}" h:Input.Icon="&#xE787;" ItemsSource="{Binding DateFilters}"

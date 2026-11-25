@@ -114,7 +114,7 @@ public class BalanceAndExpenseTests
         using var __ = sp;
         var svc = sp.GetRequiredService<IExpenseService>();
         var bad = svc.Validate(new NewExpenseRequest("", InvalidNegativeAmount, DateTime.Today, ExpenseCategory.Other, members[0].Id, SplitMethod.Equally, Array.Empty<ShareInput>()));
-        var pct = svc.Validate(new NewExpenseRequest("X", ChainDebtAmount, DefaultTestNow.Date, ExpenseCategory.Other, members[0].Id, SplitMethod.ByPercentage,
+        var pct = svc.Validate(new NewExpenseRequest("Snacks", ChainDebtAmount, DefaultTestNow.Date, ExpenseCategory.Other, members[0].Id, SplitMethod.ByPercentage,
             [new ShareInput(members[0].Id, IncompletePctFirst), new ShareInput(members[1].Id, IncompletePctSecond)]));
         Assert.True(!bad.IsValid && pct.Errors.Any(e => e.Contains("100%")));
     }
@@ -172,9 +172,9 @@ public class HouseholdServiceTests
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
         var existedBefore = await hs.AnyHouseholdExistsAsync();
-        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Cool Flat", "Ann", "ann@x.com", "secret1", ["Bob", "Cid", ""]));
+        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Cool Flat", "Ann", "ann@example.com", "Secret123", ["Bob", "Cid", ""]));
         var count = (await hs.GetMembersAsync(h.Id)).Count;
-        var r = await sp.GetRequiredService<IAuthService>().LoginAsync("ANN@x.com", "secret1");
+        var r = await sp.GetRequiredService<IAuthService>().LoginAsync("ANN@example.com", "Secret123");
         Assert.True(!existedBefore && count == InitialHouseholdSize && r.Status == LoginStatus.Success && r.Member!.Id == admin.Id);
     }
 
@@ -183,7 +183,7 @@ public class HouseholdServiceTests
     {
         using var sp = TestHost.Build(seed: false);
         await Assert.ThrowsAsync<DomainException>(() => sp.GetRequiredService<IHouseholdService>().CreateHouseholdAsync(
-            new NewHouseholdRequest("Big", "A", "a@x.com", "secret1", ["B", "C", "D", "E", "F", "G"])));
+            new NewHouseholdRequest("Big", "Ann", "ann@example.com", "Secret123", ["Bob", "Cid", "Dan", "Eva", "Fin", "Gus"])));
     }
 }
 
@@ -238,8 +238,8 @@ public class ExportTests
         var rows = Enumerable.Range(0, ExportSampleRowCount)
             .Select(i => new ReportRow(SampleDateMay1.AddDays(i % ExportDateStepMod), $"Item, \"{i}\"", "Other", "Maya", ExportBaseRowAmount + i, ExportRowYourShare))
             .ToList();
-        var pdf = Path.GetTempFileName();
-        var csv = Path.GetTempFileName();
+        var pdf = Path.Combine(Path.GetTempPath(), $"expenses_{Guid.NewGuid():N}.pdf");
+        var csv = Path.Combine(Path.GetTempPath(), $"expenses_{Guid.NewGuid():N}.csv");
         try
         {
             await svc.ExportExpensesPdfAsync(pdf, "All Expenses", rows);
@@ -269,7 +269,7 @@ public class BackendUpgradesTests
     {
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
-        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Test Home", "Uliana", "uliana@lnu.edu.ua", "pass123", ["Nazar"]));
+        var (h, admin) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Test Home", "Uliana", "uliana@lnu.edu.ua", "Secret123", ["Nazar"]));
         var members = await hs.GetMembersAsync(h.Id);
         var nazar = members.Single(m => m.DisplayName == "Nazar");
 
@@ -299,12 +299,12 @@ public class BackendUpgradesTests
     {
         using var sp = TestHost.Build(seed: false);
         var hs = sp.GetRequiredService<IHouseholdService>();
-        var (h, _) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Chore Home", "Uliana", "u@x.com", "pass123", ["Nazar", "Anna"]));
+        var (h, _) = await hs.CreateHouseholdAsync(new NewHouseholdRequest("Chore Home", "Uliana", "uliana@example.com", "Secret123", ["Nazar", "Anna"]));
         var members = await hs.GetMembersAsync(h.Id);
         var nazar = members.Single(m => m.DisplayName == "Nazar");
 
         var choreSvc = sp.GetRequiredService<IChoreService>();
-        var chore = await choreSvc.CreateChoreAsync(h.Id, new NewChoreRequest("Wash dishes", nazar.Id, DateTime.Today.AddDays(TomorrowOffsetDays), ChoreRotation.None));
+        var chore = await choreSvc.CreateChoreAsync(h.Id, new NewChoreRequest("Wash dishes", nazar.Id, DefaultTestNow.Date.AddDays(TomorrowOffsetDays), ChoreRotation.None));
 
         var canDeleteWithOpen = await hs.CanDeleteMemberAsync(nazar.Id);
         await choreSvc.ChangeStatusAsync(chore.Id, ChoreStatus.Done);
@@ -352,7 +352,7 @@ public class BackendUpgradesTests
         using var sp = TestHost.Build();
         var login = await sp.GetRequiredService<IAuthService>().LoginAsync(DemoDataSeeder.DemoAdminEmail, DemoDataSeeder.DemoPassword);
         var backupSvc = sp.GetRequiredService<IBackupService>();
-        var tempFile = Path.GetTempFileName();
+        var tempFile = Path.Combine(Path.GetTempPath(), $"backup_{Guid.NewGuid():N}.json");
         try
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();

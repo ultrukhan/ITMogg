@@ -21,15 +21,18 @@ public sealed partial class MemberEditDialogViewModel(IHouseholdService househol
 
     protected override async Task<bool> OnConfirmAsync()
     {
+        var validName = InputValidator.ValidateMemberName(DisplayName);
         var emailChanged = !string.Equals(Email.Trim(), email ?? string.Empty, StringComparison.OrdinalIgnoreCase);
         if (emailChanged || Password.Length > 0)
         {
             if (string.IsNullOrWhiteSpace(Email)) throw new DomainException(Loc.Get("S.Settings.EmailRequired"));
             if (Password.Length == 0) throw new DomainException(Loc.Get("S.Settings.PasswordRequired"));
+            InputValidator.ValidateEmail(Email);
+            InputValidator.ValidatePassword(Password);
         }
 
-        if (DisplayName.Trim() != Member.DisplayName)
-            UpdatedMember = await households.RenameMemberAsync(Member.Id, DisplayName);
+        if (validName != Member.DisplayName)
+            UpdatedMember = await households.RenameMemberAsync(Member.Id, validName);
         if (Password.Length > 0)
             await auth.SetCredentialsAsync(Member.Id, Email, Password);
         Password = string.Empty;

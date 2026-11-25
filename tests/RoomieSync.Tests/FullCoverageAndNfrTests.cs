@@ -304,20 +304,20 @@ public sealed class FullCoverageAndNfrTests
     {
         var env = BuildEnvironment();
         var (_, admin) = await env.Households.CreateHouseholdAsync(
-            new NewHouseholdRequest("SecHome", "Admin", "sec@test.com", "MyStrongPass!", ["User2"]));
+            new NewHouseholdRequest("SecHome", "Admin", "sec@test.com", "MyStrongPass1!", ["User2"]));
 
         var acc = await env.AccountRepo.GetByMemberIdAsync(admin.Id);
         await env.Auth.LoginAsync("sec@test.com", "Wrong1");
         await env.Auth.LoginAsync("sec@test.com", "Wrong2");
         var r3 = await env.Auth.LoginAsync("sec@test.com", "Wrong3");
-        var rLocked = await env.Auth.LoginAsync("sec@test.com", "MyStrongPass!");
+        var rLocked = await env.Auth.LoginAsync("sec@test.com", "MyStrongPass1!");
 
         env.Clock.Advance(LockoutWait61Sec);
-        var rSuccess = await env.Auth.LoginAsync("sec@test.com", "MyStrongPass!");
+        var rSuccess = await env.Auth.LoginAsync("sec@test.com", "MyStrongPass1!");
 
         Assert.True(
             acc is not null
-            && acc.PasswordHash != "MyStrongPass!"
+            && acc.PasswordHash != "MyStrongPass1!"
             && r3.Status == LoginStatus.LockedOut
             && rLocked.Status == LoginStatus.LockedOut
             && rSuccess.Status == LoginStatus.Success);
@@ -622,12 +622,12 @@ public sealed class FullCoverageAndNfrTests
         var updatedName = env.Session.CurrentMember!.DisplayName;
         env.Session.SignOut();
 
-        var e1 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("   ", "A", "a@b.com", "Secret123", ["B"])));
-        var e2 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home 1", "A", "a@b.com", "Secret123", ["B"])));
-        var e3 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "   ", "a@b.com", "Secret123", ["B"])));
-        var e4 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "A", "bad", "Secret123", ["B"])));
-        var e5 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "A", "a@b.com", "123", ["B"])));
-        var e6 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "Same", "a@b.com", "Secret123", ["same"])));
+        var e1 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("   ", "Ann", "ann@lnu.edu.ua", "Secret123", ["Bob"])));
+        var e2 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home 1", "Ann", "ann@lnu.edu.ua", "Secret123", ["Bob"])));
+        var e3 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "   ", "ann@lnu.edu.ua", "Secret123", ["Bob"])));
+        var e4 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "Ann", "bad", "Secret123", ["Bob"])));
+        var e5 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "Ann", "ann@lnu.edu.ua", "123", ["Bob"])));
+        var e6 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("Home MinHouseholdSize", "Same", "ann@lnu.edu.ua", "Secret123", ["same"])));
 
         var (h2, _) = await env.Households.CreateHouseholdAsync(
             new NewHouseholdRequest("Home MinHouseholdSize", "Solomiia", "solomiia@lnu.edu.ua", "Secret123", ["Anna"], "EUR"));
@@ -637,7 +637,8 @@ public sealed class FullCoverageAndNfrTests
         var renamedH1 = await env.Households.RenameAsync(h1.Id, "Home 1 Renamed");
 
         var c1 = await CaptureExceptionTypeAsync(() => env.Households.ChangeCurrencyAsync(Guid.NewGuid(), "USD"));
-        var currDefault = await env.Households.ChangeCurrencyAsync(h1.Id, "  ");
+        var cEmpty = await CaptureExceptionTypeAsync(() => env.Households.ChangeCurrencyAsync(h1.Id, "  "));
+        var currDefault = await env.Households.ChangeCurrencyAsync(h1.Id, "uah");
         var currPln = await env.Households.ChangeCurrencyAsync(h1.Id, "pln");
 
         var h1Members = await env.Households.GetMembersAsync(h1.Id);
@@ -648,8 +649,8 @@ public sealed class FullCoverageAndNfrTests
         var sc3 = await CaptureExceptionTypeAsync(() => env.Auth.SetCredentialsAsync(Guid.NewGuid(), "uliana@lnu.edu.ua", "Secret123"));
         var sc4 = await CaptureExceptionTypeAsync(() => env.Auth.SetCredentialsAsync(uliana.Id, "solomiia@lnu.edu.ua", "Secret123"));
 
-        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass111");
-        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass222");
+        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass1111");
+        await env.Auth.SetCredentialsAsync(uliana.Id, "uliana@lnu.edu.ua", "Pass2222");
         var ulianaEmail = await env.Auth.GetEmailAsync(uliana.Id);
         var missingEmail = await env.Auth.GetEmailAsync(Guid.NewGuid());
 
@@ -661,7 +662,7 @@ public sealed class FullCoverageAndNfrTests
         var nazarHouseholds = await env.Auth.GetUserHouseholdsAsync(nazar.Id);
 
         await env.Auth.LoginAsync("uliana@lnu.edu.ua", "wrong");
-        var okLogin = await env.Auth.LoginAsync("uliana@lnu.edu.ua", "Pass222");
+        var okLogin = await env.Auth.LoginAsync("uliana@lnu.edu.ua", "Pass2222");
 
         var am1 = await CaptureExceptionTypeAsync(() => env.Households.AddMemberAsync(h1.Id, "  "));
         var am2 = await CaptureExceptionTypeAsync(() => env.Households.AddMemberAsync(h1.Id, "Uliana"));
@@ -690,7 +691,7 @@ public sealed class FullCoverageAndNfrTests
             && e1 == typeof(DomainException) && e2 == typeof(DomainException) && e3 == typeof(DomainException)
             && e4 == typeof(DomainException) && e5 == typeof(DomainException) && e6 == typeof(DomainException)
             && r1 == typeof(DomainException) && r2 == typeof(DomainException) && r3 == typeof(DomainException) && renamedH1.Name == "Home 1 Renamed"
-            && c1 == typeof(DomainException) && currDefault.Currency == "UAH" && currPln.Currency == "PLN"
+            && c1 == typeof(DomainException) && cEmpty == typeof(DomainException) && currDefault.Currency == "UAH" && currPln.Currency == "PLN"
             && sc1 == typeof(DomainException) && sc2 == typeof(DomainException) && scEmptyPass == typeof(DomainException)
             && sc3 == typeof(DomainException) && sc4 == typeof(DomainException)
             && ulianaEmail == "uliana@lnu.edu.ua" && missingEmail is null
@@ -780,8 +781,9 @@ public sealed class FullCoverageAndNfrTests
         var reqToErr = await CaptureExceptionTypeAsync(() => env.Balances.RequestSettlementAsync(h.Id, new Transfer(bob.Id, Guid.NewGuid(), ChainDebtAmount)));
 
         var choreEmptyErr = await CaptureExceptionTypeAsync(() => env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("  ", null, null, ChoreRotation.None)));
-        var choreDaily = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Take out trash", bob.Id, env.Clock.Now.AddDays(OverdueMediumOffsetDays), ChoreRotation.Daily));
-        var choreMonthly = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Pay bills", null, env.Clock.Now.AddMonths(TwoMonthsAgoOffset), ChoreRotation.Monthly));
+        var choreDaily = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Take out trash", bob.Id, env.Clock.Now.AddDays(TomorrowOffsetDays), ChoreRotation.Daily));
+        var choreMonthly = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("Pay bills", null, env.Clock.Now.AddDays(TomorrowOffsetDays), ChoreRotation.Monthly));
+        env.Clock.Advance(TimeSpan.FromDays(65));
 
         var updChoreErr = await CaptureExceptionTypeAsync(() => env.Chores.UpdateChoreAsync(new Chore { Id = choreDaily.Id, Title = " " }));
         choreDaily.Title = "Take out trash daily";
@@ -1030,16 +1032,16 @@ public sealed class FullCoverageAndNfrTests
         rawSession.UpdateMember(admin);
         rawSession.SignOut();
 
-        var nh1 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest(null!, "A", "a@b.com", "Secret123", ["B"])));
-        var nh2 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullAdmin", null!, "a@b.com", "Secret123", ["B"])));
-        var nh3 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullEmail", "A", null!, "Secret123", ["B"])));
-        var nh4 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullPass", "A", "a@b.com", null!, ["B"])));
+        var nh1 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest(null!, "Ann", "ann@lnu.edu.ua", "Secret123", ["Bob"])));
+        var nh2 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullAdmin", null!, "ann@lnu.edu.ua", "Secret123", ["Bob"])));
+        var nh3 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullEmail", "Ann", null!, "Secret123", ["Bob"])));
+        var nh4 = await CaptureExceptionTypeAsync(() => env.Households.CreateHouseholdAsync(new NewHouseholdRequest("H_NullPass", "Ann", "ann@lnu.edu.ua", null!, ["Bob"])));
 
         var transfer = new Transfer(peer.Id, admin.Id, SettlementTransferAmount);
         var credInit = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, admin.Id);
         var credRepeat = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, admin.Id);
         var debtConfirm = await env.Balances.InitiateOrConfirmSettlementAsync(h.Id, transfer, peer.Id);
-        await env.Balances.RecordSettlementAsync(h.Id, new Transfer(Guid.NewGuid(), Guid.NewGuid(), ChainDebtAmount));
+        var unknownSettlementErr = await CaptureExceptionTypeAsync(() => env.Balances.RecordSettlementAsync(h.Id, new Transfer(Guid.NewGuid(), Guid.NewGuid(), ChainDebtAmount)));
 
         var nullChoreErr = await CaptureExceptionTypeAsync(() => env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest(null!, null, null, ChoreRotation.None)));
         var noDeadlineRotating = await env.Chores.CreateChoreAsync(h.Id, new NewChoreRequest("NoDeadlineTask", peer.Id, null, ChoreRotation.Weekly));
@@ -1049,7 +1051,7 @@ public sealed class FullCoverageAndNfrTests
 
         var valNullTitle = env.Expenses.Validate(new NewExpenseRequest(null!, ChainDebtAmount, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.Equally, [new ShareInput(admin.Id, EqualShareWeight)]));
         var valExactOk = env.Expenses.Validate(new NewExpenseRequest("ExactOk", ExactSplitTotal, env.Clock.Now, ExpenseCategory.Other, admin.Id, SplitMethod.ByExactAmount, [new ShareInput(admin.Id, ChainDebtAmount), new ShareInput(peer.Id, SmallExpenseAmount)]));
-        await env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest("UnknownPayer", SmallExpenseAmount, env.Clock.Now, ExpenseCategory.Other, Guid.NewGuid(), SplitMethod.Equally, [new ShareInput(admin.Id, EqualShareWeight)]));
+        var unknownPayerErr = await CaptureExceptionTypeAsync(() => env.Expenses.AddExpenseAsync(h.Id, new NewExpenseRequest("UnknownPayer", SmallExpenseAmount, env.Clock.Now, ExpenseCategory.Other, Guid.NewGuid(), SplitMethod.Equally, [new ShareInput(admin.Id, EqualShareWeight)])));
 
         var fromDate = env.Clock.Now.AddDays(OverdueMediumOffsetDays);
         var toDate = env.Clock.Now.AddDays((-TomorrowOffsetDays));
@@ -1122,9 +1124,9 @@ public sealed class FullCoverageAndNfrTests
             && inactiveLogin.Status == LoginStatus.InvalidCredentials && canDelInactive && peerHouseholds.Count == 1
             && canDelPeerWithOtherChore && vanishErr == typeof(DomainException)
             && nh1 == typeof(DomainException) && nh2 == typeof(DomainException) && nh3 == typeof(DomainException) && nh4 == typeof(DomainException)
-            && !credInit.Settled && !credRepeat.Settled && debtConfirm.Settled
+            && !credInit.Settled && !credRepeat.Settled && debtConfirm.Settled && unknownSettlementErr == typeof(DomainException)
             && nullChoreErr == typeof(DomainException) && rotatedFromNoDeadline is not null && nonRotatingDeadline == env.Clock.Now
-            && !valNullTitle.IsValid && valExactOk.IsValid
+            && !valNullTitle.IsValid && valExactOk.IsValid && unknownPayerErr == typeof(DomainException)
             && zeroCats.Single().Percentage == 0.0 && emptyReport.TopCategory is null
             && notifEvents >= MinValidationErrorsCount && nullBackupErr == typeof(DomainException)
             && emptyParsed.Merchant is null && weirdJson.Items.Count == MinHouseholdSize && weirdJson.Items[0].Price == 0m

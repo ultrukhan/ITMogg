@@ -97,14 +97,14 @@
                 </StackPanel>
 
                 <TextBlock Text="{DynamicResource S.AddExpense.FieldTitle}" Style="{StaticResource Label}" />
-                <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE8EC;"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="200" h:Input.Icon="&#xE8EC;"
                                          h:Input.Placeholder="{DynamicResource S.AddExpense.TitlePlaceholder}"
                                          Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,14" />
 
                 <UniformGrid Columns="2" Margin="-6,0,-6,14">
                   <StackPanel Margin="6,0">
                     <TextBlock Text="{DynamicResource S.AddExpense.FieldAmount}" Style="{StaticResource Label}" />
-                    <TextBox Style="{StaticResource InputBox}" h:Input.Prefix="{Binding CurrencySymbol}"
+                    <TextBox Style="{StaticResource InputBox}" MaxLength="16" h:Input.Prefix="{Binding CurrencySymbol}"
                                                  h:Input.Placeholder="0.00"
                                                  Text="{Binding AmountText, UpdateSourceTrigger=PropertyChanged}" />
                   </StackPanel>
@@ -161,7 +161,7 @@
                             <TextBlock Text="{Binding RoleLabel}" Style="{StaticResource Caption}" FontSize="10.5" />
                           </StackPanel>
                         </StackPanel>
-                        <TextBox Grid.Column="2" Style="{StaticResource SmallInputBox}"
+                        <TextBox Grid.Column="2" Style="{StaticResource SmallInputBox}" MaxLength="12"
                                                          h:Input.Prefix="{Binding Prefix}"
                                                          IsReadOnly="{Binding IsEditable, Converter={StaticResource InverseBool}}"
                                                          Text="{Binding ValueText, UpdateSourceTrigger=PropertyChanged}" />

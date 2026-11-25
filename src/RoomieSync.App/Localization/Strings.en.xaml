@@ -291,7 +291,7 @@ Check the connection string in appsettings.json or switch Data:Provider to InMem
     <sys:String x:Key="S.Settings.Name" xml:space="preserve">Name</sys:String>
     <sys:String x:Key="S.Settings.LoginTitle" xml:space="preserve">Sign-in (optional)</sys:String>
     <sys:String x:Key="S.Settings.LoginHint" xml:space="preserve">Set an email and a password so this roommate can sign in. Leave the password empty to keep the current one.</sys:String>
-    <sys:String x:Key="S.Settings.NewPassword" xml:space="preserve">New password (min. 6 characters)</sys:String>
+    <sys:String x:Key="S.Settings.NewPassword" xml:space="preserve">New password (min. 8 chars, upper + lower + digit)</sys:String>
     <sys:String x:Key="S.Settings.EmailRequired" xml:space="preserve">Enter an email to enable sign-in.</sys:String>
     <sys:String x:Key="S.Settings.PasswordRequired" xml:space="preserve">Enter a password to save sign-in details.</sys:String>
 </ResourceDictionary>

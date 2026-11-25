@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 
 namespace RoomieSync.Core.Security;
 
@@ -11,7 +12,9 @@ public sealed class Pbkdf2PasswordHasher : IPasswordHasher
 
     public (string Hash, string Salt) Hash(string password)
     {
-        ArgumentException.ThrowIfNullOrEmpty(password);
+        if (string.IsNullOrWhiteSpace(password) || password.Length > InputValidator.MaxPasswordLength)
+            throw new ArgumentException("Password must be non-empty and at most 128 characters.", nameof(password));
+
         var salt = RandomNumberGenerator.GetBytes(SaltSize);
         var hash = Rfc2898DeriveBytes.Pbkdf2(password, salt, Iterations, HashAlgorithmName.SHA256, HashSize);
         return (Convert.ToBase64String(hash), Convert.ToBase64String(salt));
@@ -19,10 +22,17 @@ public sealed class Pbkdf2PasswordHasher : IPasswordHasher
 
     public bool Verify(string password, string hash, string salt)
     {
-        if (string.IsNullOrEmpty(password) || string.IsNullOrEmpty(hash) || string.IsNullOrEmpty(salt))
+        if (string.IsNullOrEmpty(password) || password.Length > InputValidator.MaxPasswordLength
+            || string.IsNullOrWhiteSpace(hash) || string.IsNullOrWhiteSpace(salt))
             return false;
-        var expected = Convert.FromBase64String(hash);
-        var actual = Rfc2898DeriveBytes.Pbkdf2(password, Convert.FromBase64String(salt), Iterations, HashAlgorithmName.SHA256, expected.Length);
+
+        Span<byte> expected = stackalloc byte[HashSize];
+        Span<byte> saltBytes = stackalloc byte[SaltSize];
+        if (!Convert.TryFromBase64String(hash, expected, out var hashLen) || hashLen != HashSize
+            || !Convert.TryFromBase64String(salt, saltBytes, out var saltLen) || saltLen != SaltSize)
+            return false;
+
+        var actual = Rfc2898DeriveBytes.Pbkdf2(password, saltBytes, Iterations, HashAlgorithmName.SHA256, HashSize);
         return CryptographicOperations.FixedTimeEquals(expected, actual);
     }
 }

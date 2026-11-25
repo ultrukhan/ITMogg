@@ -50,16 +50,16 @@
                 <TextBlock Text="{DynamicResource S.Login.Subtitle}" Style="{StaticResource Muted}" Margin="0,4,0,28" />
 
                 <TextBlock Text="{DynamicResource S.Login.Email}" Style="{StaticResource Label}" />
-                <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
+                <TextBox Style="{StaticResource InputBox}" MaxLength="254" h:Input.Icon="&#xE715;" h:Input.Placeholder="{DynamicResource S.Login.EmailPlaceholder}"
                          Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" />
 
                 <TextBlock Text="{DynamicResource S.Login.Password}" Style="{StaticResource Label}" Margin="0,18,0,7" />
                 <Grid>
-                    <PasswordBox x:Name="PasswordInput" Style="{StaticResource InputPassword}" h:Input.Icon="&#xE72E;"
+                    <PasswordBox x:Name="PasswordInput" MaxLength="128" Style="{StaticResource InputPassword}" h:Input.Icon="&#xE72E;"
                                  h:Input.Placeholder="{DynamicResource S.Login.PasswordPlaceholder}"
                                  h:PasswordBoxHelper.BoundPassword="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
                                  Visibility="{Binding IsPasswordVisible, Converter={StaticResource InverseBoolToVis}}" />
-                    <TextBox Style="{StaticResource InputBox}" h:Input.Icon="&#xE72E;"
+                    <TextBox Style="{StaticResource InputBox}" MaxLength="128" h:Input.Icon="&#xE72E;"
                              Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}"
                              Visibility="{Binding IsPasswordVisible, Converter={StaticResource BoolToVis}}" />
                     <Button Style="{StaticResource IconButton}" Background="Transparent" Width="30" Height="30" HorizontalAlignment="Right"

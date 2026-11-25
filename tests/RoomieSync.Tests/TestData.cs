@@ -132,7 +132,7 @@ public static class TestData
 
     public const int ExpenseAmountStepMod = 50;
     public const int ExpenseDayStepMod = 25;
-    public const int ExpenseCategoryMod = 6;
+    public const int ExpenseCategoryMod = 5;
     public const int DaysInYearMod = 365;
     public const int ExportDateStepMod = 20;
 

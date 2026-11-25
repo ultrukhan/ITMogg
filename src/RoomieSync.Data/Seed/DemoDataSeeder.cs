@@ -16,7 +16,7 @@ public sealed class DemoDataSeeder(
     IPasswordHasher hasher,
     IClock clock)
 {
-    public const string DemoPassword = "demo123";
+    public const string DemoPassword = "Demo1234!";
     public const string DemoAdminEmail = "maya@roomiesync.app";
 
     public async Task SeedAsync(CancellationToken ct = default)
