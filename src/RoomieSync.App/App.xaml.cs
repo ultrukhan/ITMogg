@@ -38,7 +38,6 @@ public partial class App : Application
             .AddEnvironmentVariables("ROOMIESYNC_")
             .Build();
 
-        // Журналювання налаштовуємо першим, щоб зафіксувати навіть помилки старту.
         AppLogging.Initialize(configuration);
         _log = AppLogging.CreateLogger<App>();
         RegisterGlobalExceptionHandlers();
@@ -79,7 +78,6 @@ public partial class App : Application
 
     private void RegisterGlobalExceptionHandlers()
     {
-        // Помилка в UI-потоці: логуємо, показуємо повідомлення, програма працює далі.
         DispatcherUnhandledException += (_, args) =>
         {
             _log.LogError(args.Exception, "Unhandled UI exception");
@@ -87,14 +85,12 @@ public partial class App : Application
             args.Handled = true;
         };
 
-        // Помилка у фоновому потоці: програма впаде, тож встигаємо записати Fatal і скинути буфер на диск.
         AppDomain.CurrentDomain.UnhandledException += (_, args) =>
         {
             _log.LogCritical(args.ExceptionObject as Exception, "Fatal unhandled exception (terminating: {Terminating})", args.IsTerminating);
             if (args.IsTerminating) Serilog.Log.CloseAndFlush();
         };
 
-        // Задача (Task), в якої ніхто не перевірив виняток.
         TaskScheduler.UnobservedTaskException += (_, args) =>
         {
             _log.LogError(args.Exception, "Unobserved task exception");

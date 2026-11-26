@@ -29,7 +29,6 @@ public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options, 
             throw new ReceiptParseException("Gemini API key is not configured.");
         }
 
-        // Ключ API у журнал не пишемо ніколи: тільки модель, розмір і тип файлу.
         _log.LogInformation("Sending receipt {File} ({Bytes} bytes, {Mime}) to Gemini model {Model}",
             Logging.LogSanitizer.FileName(fileName), image.Length, mimeType, options.Model);
         var sw = Stopwatch.StartNew();

@@ -12,7 +12,6 @@ using static RoomieSync.Tests.TestData;
 
 namespace RoomieSync.Tests;
 
-/// <summary>Перевірки журналювання (Sprint 8, #82): рівні подій і відсутність секретів у логах.</summary>
 public class LoggingTests
 {
     [Theory]
@@ -74,7 +73,6 @@ public class LoggingTests
     [Fact]
     public void Services_WorkWithoutAnyLoggingProvider()
     {
-        // Сервіси мають працювати і без підключених логерів (як у звичайних тестах).
         using var sp = TestHost.Build();
         Assert.NotNull(sp.GetRequiredService<ILogger<LoggingTests>>());
     }
@@ -105,7 +103,6 @@ internal sealed class CapturingLoggerProvider : ILoggerProvider
     private readonly object _lock = new();
     private readonly List<Entry> _entries = new();
 
-    /// <summary>Знімок записаних подій.</summary>
     public IReadOnlyList<Entry> Entries { get { lock (_lock) return _entries.ToList(); } }
 
     public void Clear() { lock (_lock) _entries.Clear(); }

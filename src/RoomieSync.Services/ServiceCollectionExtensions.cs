@@ -24,8 +24,6 @@ public static class ServiceCollectionExtensions
         var gemini = configuration.GetSection(GeminiOptions.Section).Get<GeminiOptions>() ?? new GeminiOptions();
         services.AddSingleton(gemini);
 
-        // ILogger<T> для всіх сервісів. Самі "приймачі" логів (файли тощо) підключає App через Serilog;
-        // у тестах без провайдерів логи просто нікуди не пишуться.
         services.AddLogging();
 
         services.AddSingleton<IClock, SystemClock>();

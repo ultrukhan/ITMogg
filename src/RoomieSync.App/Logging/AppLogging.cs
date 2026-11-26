@@ -10,19 +10,6 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace RoomieSync.App.Logging;
 
-/// <summary>
-/// Налаштування журналювання застосунку (Serilog через Microsoft.Extensions.Logging).
-///
-/// Куди пишемо (за замовчуванням <c>%LOCALAPPDATA%\RoomieSync\logs</c>):
-/// <list type="bullet">
-///   <item><c>roomiesync-YYYYMMDD.log</c> — усі події від мінімального рівня, новий файл щодня (зберігаємо 30 днів);</item>
-///   <item><c>errors-YYYYMMDD.log</c> — лише Warning, Error, Fatal, щоб швидко знайти проблеми;</item>
-///   <item><c>sessions\session-YYYYMMDD-HHmmss-XXXXXXXX.log</c> — окремий файл на кожен запуск програми (сесію).</item>
-/// </list>
-/// Рівні: Verbose &lt; Debug &lt; Information &lt; Warning &lt; Error &lt; Fatal.
-/// Мінімальний рівень змінюється ключем <c>Logging:MinimumLevel</c> в appsettings.json
-/// або змінною середовища <c>ROOMIESYNC_Logging__MinimumLevel</c>.
-/// </summary>
 public static class AppLogging
 {
     private const string OutputTemplate =
@@ -30,14 +17,12 @@ public static class AppLogging
 
     private static ILoggerFactory _factory = NullLoggerFactory.Instance;
 
-    /// <summary>Ідентифікатор поточного запуску програми (сесії).</summary>
     public static string SessionId { get; } = Guid.NewGuid().ToString("N")[..8];
 
     public static string LogDirectory { get; private set; } = DefaultLogDirectory();
 
     public static string? SessionLogFile { get; private set; }
 
-    /// <summary>Логер для класів, які створюються не через DI (базові ViewModel, App тощо).</summary>
     public static ILogger CreateLogger(Type type) => _factory.CreateLogger(type);
 
     public static ILogger<T> CreateLogger<T>() => _factory.CreateLogger<T>();
@@ -64,7 +49,6 @@ public static class AppLogging
 
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Is(minimum)
-            // Службові логи .NET (HttpClient, DI) лише від Warning, щоб не засмічувати файли.
             .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
             .MinimumLevel.Override("System", LogEventLevel.Warning)
             .Enrich.FromLogContext()
@@ -97,11 +81,9 @@ public static class AppLogging
                 version, Environment.OSVersion, Environment.Version, minimum, LogDirectory);
     }
 
-    /// <summary>Підключає Serilog як провайдер для <see cref="ILogger{T}"/> у DI.</summary>
     public static void AttachTo(ILoggingBuilder builder)
         => builder.ClearProviders().SetMinimumLevel(LogLevel.Trace).AddSerilog(dispose: false);
 
-    /// <summary>Дозволяє писати в кожен рядок, хто з користувачів зараз увійшов.</summary>
     public static void TrackSession(ISessionContext session) => CurrentUserEnricher.Instance.Session = session;
 
     public static void Shutdown(int exitCode)
@@ -124,11 +106,10 @@ public static class AppLogging
             foreach (var f in new DirectoryInfo(dir).EnumerateFiles("session-*.log"))
                 if (f.LastWriteTime < threshold) f.Delete();
         }
-        catch (IOException) { /* файл може бути відкритий іншою копією програми */ }
+        catch (IOException) { }
         catch (UnauthorizedAccessException) { }
     }
 
-    /// <summary>Додає до кожної події властивість User: Id учасника або "anonymous" до входу.</summary>
     private sealed class CurrentUserEnricher : ILogEventEnricher
     {
         public static readonly CurrentUserEnricher Instance = new();

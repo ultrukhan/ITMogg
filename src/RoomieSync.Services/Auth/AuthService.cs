@@ -49,7 +49,6 @@ public sealed class AuthService : IAuthService
             return new LoginResult(LoginStatus.InvalidCredentials, AttemptsLeft: MaxFailedAttempts);
         }
 
-        // Пароль ніколи не логуємо, email лише в замаскованому вигляді.
         var maskedEmail = LogSanitizer.MaskEmail(email);
         _logger.LogDebug("Login attempt for {Email}", maskedEmail);
 

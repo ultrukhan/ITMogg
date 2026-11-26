@@ -13,7 +13,6 @@ public abstract partial class ViewModelBase : ObservableObject
 
     private ILogger? _logger;
 
-    /// <summary>Логер з категорією конкретної ViewModel (напр. RoomieSync.App.ViewModels.Pages.ExpensesViewModel).</summary>
     protected ILogger Logger => _logger ??= AppLogging.CreateLogger(GetType());
 
     
@@ -26,13 +25,11 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         catch (DomainException ex)
         {
-            // Очікувана помилка бізнес-правил (некоректні дані тощо): Warning без стеку.
             Logger.LogWarning("Operation rejected: {Reason}", ex.Message);
             toast?.Show(ex.Message, ToastKind.Error);
         }
         catch (Exception ex)
         {
-            // Неочікувана помилка: Error з повним стеком для розбору.
             Logger.LogError(ex, "Unexpected error in {ViewModel}", GetType().Name);
             toast?.Show("Something went wrong: " + ex.Message, ToastKind.Error);
         }

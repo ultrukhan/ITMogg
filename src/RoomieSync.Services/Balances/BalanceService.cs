@@ -18,7 +18,6 @@ public sealed class BalanceService(
     IClock clock,
     ILogger<BalanceService>? logger = null) : IBalanceService
 {
-    // НФВ: алгоритм спрощення боргів має працювати швидше за 500 мс.
     private const int SimplifyBudgetMs = 500;
     private readonly ILogger _log = logger ?? NullLogger<BalanceService>.Instance;
     private readonly ConcurrentDictionary<(Guid HouseholdId, Guid FromId, Guid ToId), Guid> _pendingConfirmations = new();
