@@ -1,8 +1,11 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 using RoomieSync.Core.Security;
+using RoomieSync.Services.Logging;
 
 namespace RoomieSync.Services.Auth;
 
@@ -16,19 +19,22 @@ public sealed class AuthService : IAuthService
     private readonly IHouseholdRepository _households;
     private readonly IPasswordHasher _hasher;
     private readonly IClock _clock;
+    private readonly ILogger<AuthService> _logger;
 
     public AuthService(
         IUserAccountRepository accounts,
         IMemberRepository members,
         IHouseholdRepository households,
         IPasswordHasher? hasher = null,
-        IClock? clock = null)
+        IClock? clock = null,
+        ILogger<AuthService>? logger = null)
     {
         _accounts = accounts;
         _members = members;
         _households = households;
         _hasher = hasher ?? new Pbkdf2PasswordHasher();
         _clock = clock ?? new SystemClock();
+        _logger = logger ?? NullLogger<AuthService>.Instance;
     }
 
     public async Task<LoginResult> LoginAsync(
@@ -38,7 +44,13 @@ public sealed class AuthService : IAuthService
     {
         email = email?.Trim() ?? string.Empty;
         if (email.Length == 0 || string.IsNullOrEmpty(password))
+        {
+            _logger.LogWarning("Login rejected: empty email or password");
             return new LoginResult(LoginStatus.InvalidCredentials, AttemptsLeft: MaxFailedAttempts);
+        }
+
+        var maskedEmail = LogSanitizer.MaskEmail(email);
+        _logger.LogDebug("Login attempt for {Email}", maskedEmail);
 
         var allAccounts = await _accounts.GetAllByEmailAsync(email, ct);
         if (allAccounts.Count == 0)
@@ -49,13 +61,20 @@ public sealed class AuthService : IAuthService
         }
 
         if (allAccounts.Count == 0)
+        {
+            _logger.LogWarning("Login failed for {Email}: account not found", maskedEmail);
             return new LoginResult(LoginStatus.InvalidCredentials, AttemptsLeft: MaxFailedAttempts);
+        }
 
         var now = _clock.Now;
         var primaryAcc = allAccounts[0];
 
         if (primaryAcc.LockedUntil is { } lockedUntil && lockedUntil > now)
+        {
+            _logger.LogWarning("Login blocked for {Email}: account is locked for another {Seconds:0} s",
+                maskedEmail, (lockedUntil - now).TotalSeconds);
             return new LoginResult(LoginStatus.LockedOut, LockoutRemaining: lockedUntil - now);
+        }
 
         var validMemberships = new List<(Member Member, Household Household)>();
 
@@ -84,6 +103,8 @@ public sealed class AuthService : IAuthService
         if (validMemberships.Count > 0)
         {
             var first = validMemberships[0];
+            _logger.LogInformation("Login succeeded: member {MemberId}, household {HouseholdId} ({Count} membership(s))",
+                first.Member.Id, first.Household.Id, validMemberships.Count);
             return new LoginResult(
                 LoginStatus.Success,
                 first.Member,
@@ -97,11 +118,15 @@ public sealed class AuthService : IAuthService
             primaryAcc.FailedAttempts = 0;
             primaryAcc.LockedUntil = now + LockoutDuration;
             await _accounts.UpdateAsync(primaryAcc, ct);
+            _logger.LogWarning("Account {Email} locked for {Seconds} s after {Max} failed login attempts",
+                maskedEmail, LockoutDuration.TotalSeconds, MaxFailedAttempts);
             return new LoginResult(LoginStatus.LockedOut, LockoutRemaining: LockoutDuration);
         }
 
         await _accounts.UpdateAsync(primaryAcc, ct);
         var attemptsLeft = Math.Max(0, MaxFailedAttempts - primaryAcc.FailedAttempts);
+        _logger.LogWarning("Login failed for {Email}: wrong password, {AttemptsLeft} attempt(s) left",
+            maskedEmail, attemptsLeft);
         return new LoginResult(LoginStatus.InvalidCredentials, AttemptsLeft: attemptsLeft);
     }
 
@@ -157,6 +182,9 @@ public sealed class AuthService : IAuthService
             current.LockedUntil = null;
             await _accounts.UpdateAsync(current, ct);
         }
+
+        _logger.LogInformation("Credentials {Action} for member {MemberId}",
+            current is null ? "created" : "updated", memberId);
     }
 
     public async Task<string?> GetEmailAsync(

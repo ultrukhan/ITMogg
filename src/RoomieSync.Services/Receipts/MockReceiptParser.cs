@@ -1,21 +1,32 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
 
-public sealed class MockReceiptParser(GeminiOptions options, IClock clock) : IReceiptParser
+public sealed class MockReceiptParser(GeminiOptions options, IClock clock, ILogger<MockReceiptParser>? logger = null) : IReceiptParser
 {
+    private readonly ILogger _log = logger ?? NullLogger<MockReceiptParser>.Instance;
+
     public async Task<ParsedReceipt> ParseReceiptAsync(byte[] image, string mimeType, string? fileName = null, CancellationToken ct = default)
     {
         var name = (fileName ?? string.Empty).ToLowerInvariant();
+        _log.LogInformation("Mock receipt parser used for {File} ({Bytes} bytes): Gemini key is not configured or UseMock=true",
+            Logging.LogSanitizer.FileName(fileName), image.Length);
         if (name.Contains("slow"))
         {
             await Task.Delay(TimeSpan.FromSeconds(options.TimeoutSeconds), ct);
+            _log.LogWarning("Mock receipt recognition timed out after {Timeout} s", options.TimeoutSeconds);
             throw new ReceiptParseException($"Receipt recognition took longer than {options.TimeoutSeconds} seconds.", isTimeout: true);
         }
 
         await Task.Delay(1200, ct);
-        if (name.Contains("fail")) throw new ReceiptParseException("Could not recognize the receipt.");
+        if (name.Contains("fail"))
+        {
+            _log.LogError("Mock receipt recognition failed for {File}", Logging.LogSanitizer.FileName(fileName));
+            throw new ReceiptParseException("Could not recognize the receipt.");
+        }
 
         var receipt = new ParsedReceipt
         {

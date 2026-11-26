@@ -1,4 +1,7 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
@@ -12,8 +15,11 @@ public sealed class BalanceService(
     IMemberRepository members,
     IDebtSimplifier simplifier,
     INotificationService notifications,
-    IClock clock) : IBalanceService
+    IClock clock,
+    ILogger<BalanceService>? logger = null) : IBalanceService
 {
+    private const int SimplifyBudgetMs = 500;
+    private readonly ILogger _log = logger ?? NullLogger<BalanceService>.Instance;
     private readonly ConcurrentDictionary<(Guid HouseholdId, Guid FromId, Guid ToId), Guid> _pendingConfirmations = new();
 
     public async Task<IReadOnlyList<MemberBalance>> GetBalancesAsync(Guid householdId, CancellationToken ct = default)
@@ -25,7 +31,15 @@ public sealed class BalanceService(
     public async Task<SettlementPlan> GetSettlementPlanAsync(Guid householdId, CancellationToken ct = default)
     {
         var (balances, pairwise) = await ComputeAsync(householdId, ct);
+        var sw = Stopwatch.StartNew();
         var transfers = simplifier.Simplify(balances);
+        sw.Stop();
+        if (sw.ElapsedMilliseconds > SimplifyBudgetMs)
+            _log.LogWarning("Debt simplification for household {HouseholdId} took {Elapsed} ms (limit {Limit} ms)",
+                householdId, sw.ElapsedMilliseconds, SimplifyBudgetMs);
+        else
+            _log.LogDebug("Debt simplification: {Members} balance(s) -> {Transfers} transfer(s) in {Elapsed} ms",
+                balances.Count, transfers.Count, sw.ElapsedMilliseconds);
         return new SettlementPlan(transfers, balances, pairwise);
     }
 
@@ -40,7 +54,10 @@ public sealed class BalanceService(
         var to = await members.GetByIdAsync(transfer.ToMemberId, ct) ?? throw new DomainException("Creditor not found.");
 
         if (actorMemberId != transfer.FromMemberId && actorMemberId != transfer.ToMemberId)
+        {
+            _log.LogWarning("Member {MemberId} tried to settle a debt they are not part of", actorMemberId);
             throw new DomainException($"Only {from.FirstName} (debtor) or {to.FirstName} (creditor) can mark this debt as paid.");
+        }
 
         var key = (householdId, transfer.FromMemberId, transfer.ToMemberId);
         if (_pendingConfirmations.TryGetValue(key, out var firstConfirmerId))
@@ -57,6 +74,8 @@ public sealed class BalanceService(
         }
 
         _pendingConfirmations[key] = actorMemberId;
+        _log.LogInformation("Settlement {From} -> {To} ({Amount}) marked as paid by {MemberId}, waiting for confirmation",
+            transfer.FromMemberId, transfer.ToMemberId, transfer.Amount, actorMemberId);
         var otherParty = actorMemberId == from.Id ? to : from;
         var actorName = actorMemberId == from.Id ? from.FirstName : to.FirstName;
 
@@ -82,6 +101,7 @@ public sealed class BalanceService(
             Date = clock.Now
         };
         await settlements.AddAsync(s, ct);
+        _log.LogInformation("Settlement {SettlementId} recorded: {From} paid {To} {Amount}", s.Id, s.FromMemberId, s.ToMemberId, s.Amount);
 
         var from = await members.GetByIdAsync(transfer.FromMemberId, ct);
         var to = await members.GetByIdAsync(transfer.ToMemberId, ct);

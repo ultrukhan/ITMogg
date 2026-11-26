@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RoomieSync.App.ViewModels;
 
 namespace RoomieSync.App.Services;
@@ -14,7 +15,7 @@ public interface INavigationService
 }
 
 
-public sealed class NavigationService(IServiceProvider services) : ObservableObject, INavigationService
+public sealed class NavigationService(IServiceProvider services, ILogger<NavigationService> logger) : ObservableObject, INavigationService
 {
     private readonly Stack<(Type Type, object? Parameter)> _history = new();
     private PageViewModel? _currentPage;
@@ -50,6 +51,7 @@ public sealed class NavigationService(IServiceProvider services) : ObservableObj
 
     private async Task NavigateAsync(Type type, object? parameter, bool addToHistory)
     {
+        logger.LogDebug("Navigating to {Page}", type.Name);
         var page = (PageViewModel)services.GetRequiredService(type);
         if (addToHistory) _history.Push((type, parameter));
         CurrentPage = page;

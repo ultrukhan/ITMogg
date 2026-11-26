@@ -1,5 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
+using RoomieSync.App.Logging;
 using RoomieSync.Core.Common;
 
 namespace RoomieSync.App.ViewModels.Dialogs;
@@ -35,10 +37,12 @@ public abstract partial class DialogViewModel : ObservableObject
         }
         catch (DomainException ex)
         {
+            AppLogging.CreateLogger(GetType()).LogWarning("Dialog input rejected: {Reason}", ex.Message);
             Error = ex.Message;
         }
         catch (Exception ex)
         {
+            AppLogging.CreateLogger(GetType()).LogError(ex, "Unexpected error in dialog {Dialog}", GetType().Name);
             Error = ex.Message;
         }
         finally

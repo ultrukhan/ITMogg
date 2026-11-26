@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
@@ -9,8 +11,11 @@ public sealed class ExpenseService(
     IExpenseRepository expenses,
     IMemberRepository members,
     INotificationService notifications,
-    IClock clock) : IExpenseService
+    IClock clock,
+    ILogger<ExpenseService>? logger = null) : IExpenseService
 {
+    private readonly ILogger _log = logger ?? NullLogger<ExpenseService>.Instance;
+
     public Task<IReadOnlyList<Expense>> GetExpensesAsync(Guid householdId, DateTime? from = null, DateTime? to = null, CancellationToken ct = default)
         => expenses.GetByHouseholdAsync(householdId, from, to, ct);
 
@@ -51,7 +56,11 @@ public sealed class ExpenseService(
     public async Task<Expense> AddExpenseAsync(Guid householdId, NewExpenseRequest request, CancellationToken ct = default)
     {
         var validation = Validate(request);
-        if (!validation.IsValid) throw new DomainException(string.Join(Environment.NewLine, validation.Errors));
+        if (!validation.IsValid)
+        {
+            _log.LogWarning("Expense rejected by validation: {Errors}", string.Join("; ", validation.Errors));
+            throw new DomainException(string.Join(Environment.NewLine, validation.Errors));
+        }
 
         var expense = new Expense
         {
@@ -68,6 +77,8 @@ public sealed class ExpenseService(
             Shares = CalculateShares(request.Amount, request.SplitMethod, request.Shares).ToList()
         };
         await expenses.AddAsync(expense, ct);
+        _log.LogInformation("Expense {ExpenseId} added: {Amount} ({Category}, {SplitMethod}, {Shares} share(s)) paid by {MemberId}",
+            expense.Id, expense.Amount, expense.Category, expense.SplitMethod, expense.Shares.Count, expense.PaidByMemberId);
 
         var payer = await members.GetByIdAsync(request.PaidByMemberId, ct);
         await notifications.NotifyHouseholdAsync(householdId, NotificationType.NewExpense,
@@ -79,7 +90,11 @@ public sealed class ExpenseService(
     {
         var existing = await expenses.GetByIdAsync(expenseId, ct) ?? throw new DomainException("Expense not found.");
         var validation = Validate(request);
-        if (!validation.IsValid) throw new DomainException(string.Join(Environment.NewLine, validation.Errors));
+        if (!validation.IsValid)
+        {
+            _log.LogWarning("Expense {ExpenseId} update rejected by validation: {Errors}", expenseId, string.Join("; ", validation.Errors));
+            throw new DomainException(string.Join(Environment.NewLine, validation.Errors));
+        }
 
         existing.Title = request.Title.Trim();
         existing.Merchant = request.Merchant;
@@ -92,10 +107,15 @@ public sealed class ExpenseService(
         existing.Shares = CalculateShares(request.Amount, request.SplitMethod, request.Shares).ToList();
 
         await expenses.UpdateAsync(existing, ct);
+        _log.LogInformation("Expense {ExpenseId} updated: amount {Amount}", existing.Id, existing.Amount);
         return existing;
     }
 
-    public Task DeleteExpenseAsync(Guid id, CancellationToken ct = default) => expenses.DeleteAsync(id, ct);
+    public Task DeleteExpenseAsync(Guid id, CancellationToken ct = default)
+    {
+        _log.LogInformation("Expense {ExpenseId} deleted", id);
+        return expenses.DeleteAsync(id, ct);
+    }
 
     public async Task<DeleteExpenseResult> RequestOrApproveDeleteAsync(Guid expenseId, Guid currentMemberId, CancellationToken ct = default)
     {
@@ -106,10 +126,16 @@ public sealed class ExpenseService(
         var isInitiation = expense.DeleteApprovedBy.Count == 0;
 
         if (isInitiation && expense.PaidByMemberId != currentMemberId && !actor.IsAdmin)
+        {
+            _log.LogWarning("Member {MemberId} tried to initiate deletion of expense {ExpenseId} without permission", currentMemberId, expenseId);
             throw new DomainException("Only the person who paid for this expense (or the household admin) can initiate its deletion.");
+        }
 
         if (!requiredIds.Contains(currentMemberId) && !actor.IsAdmin)
+        {
+            _log.LogWarning("Member {MemberId} is not a participant of expense {ExpenseId}", currentMemberId, expenseId);
             throw new DomainException("You are not a participant of this expense.");
+        }
 
         expense.DeleteApprovedBy.Add(currentMemberId);
 
@@ -117,6 +143,7 @@ public sealed class ExpenseService(
         if (approvedCount >= requiredIds.Count)
         {
             await expenses.DeleteAsync(expenseId, ct);
+            _log.LogInformation("Expense {ExpenseId} deleted after all {Count} participants approved", expenseId, requiredIds.Count);
             await notifications.NotifyHouseholdAsync(
                 expense.HouseholdId,
                 NotificationType.NewExpense,
@@ -127,6 +154,8 @@ public sealed class ExpenseService(
         }
 
         await expenses.UpdateAsync(expense, ct);
+        _log.LogInformation("Deletion of expense {ExpenseId} approved by {MemberId} ({Approved}/{Required})",
+            expenseId, currentMemberId, approvedCount, requiredIds.Count);
 
         foreach (var participantId in requiredIds.Where(id => !expense.DeleteApprovedBy.Contains(id)))
         {

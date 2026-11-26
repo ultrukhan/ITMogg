@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using Microsoft.Extensions.Logging;
+using RoomieSync.App.Logging;
 using RoomieSync.App.Services;
 using RoomieSync.Core.Common;
 
@@ -8,6 +10,10 @@ public abstract partial class ViewModelBase : ObservableObject
 {
     [ObservableProperty]
     private bool _isBusy;
+
+    private ILogger? _logger;
+
+    protected ILogger Logger => _logger ??= AppLogging.CreateLogger(GetType());
 
     
     protected async Task RunAsync(Func<Task> action, IToastService? toast = null)
@@ -19,12 +25,13 @@ public abstract partial class ViewModelBase : ObservableObject
         }
         catch (DomainException ex)
         {
+            Logger.LogWarning("Operation rejected: {Reason}", ex.Message);
             toast?.Show(ex.Message, ToastKind.Error);
         }
         catch (Exception ex)
         {
+            Logger.LogError(ex, "Unexpected error in {ViewModel}", GetType().Name);
             toast?.Show("Something went wrong: " + ex.Message, ToastKind.Error);
-            System.Diagnostics.Debug.WriteLine(ex);
         }
         finally
         {

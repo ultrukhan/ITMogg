@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using RoomieSync.App.Localization;
 using RoomieSync.App.Services;
 using RoomieSync.App.ViewModels.Items;
@@ -266,11 +267,14 @@ public sealed partial class AddExpenseViewModel : PageViewModel
         }
         catch (ReceiptParseException ex)
         {
+            Logger.LogWarning("Receipt scan failed ({Kind}), switching to manual entry: {Reason}",
+                ex.IsTimeout ? "timeout" : "error", ex.Message);
             ReceiptError = (ex.IsTimeout ? Loc.Get("S.AddExpense.ScanTimeout") : Loc.Get("S.AddExpense.ScanFailed")) + " " + Loc.Get("S.AddExpense.EnterManually");
             IsScanMode = false;
         }
         catch (IOException ex)
         {
+            Logger.LogError(ex, "Could not read the receipt image file");
             ReceiptError = ex.Message;
             IsScanMode = false;
         }

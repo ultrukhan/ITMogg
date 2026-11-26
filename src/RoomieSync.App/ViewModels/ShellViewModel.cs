@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using RoomieSync.App.Localization;
 using RoomieSync.App.Services;
 using RoomieSync.App.ViewModels.Items;
@@ -97,7 +98,8 @@ public sealed partial class ShellViewModel : ViewModelBase
 
         if (_session.CurrentHousehold is { } h)
         {
-            try { await _notifications.CheckOverdueChoresAsync(h.Id); } catch { }
+            try { await _notifications.CheckOverdueChoresAsync(h.Id); }
+            catch (Exception ex) { Logger.LogWarning(ex, "Could not check overdue chores for household {HouseholdId}", h.Id); }
         }
         await LoadNotificationsAsync();
         await Navigation.NavigateToAsync<DashboardViewModel>();

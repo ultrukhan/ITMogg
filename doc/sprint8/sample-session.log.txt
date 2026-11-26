@@ -1,0 +1,17 @@
+2026-11-25 23:11:04.150 +00:00 [INF] [0a8d1b41] [anonymous] RoomieSync.App: RoomieSync 1.0.0.0 started on Microsoft Windows NT 10.0.22631.0, .NET 8.0.34; minimum log level Debug, logs in C:\Users\<user>\AppData\Local\RoomieSync\logs
+2026-11-25 23:11:04.362 +00:00 [DBG] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login attempt for n***@x.com
+2026-11-25 23:11:04.364 +00:00 [WRN] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login failed for n***@x.com: account not found
+2026-11-25 23:11:04.368 +00:00 [DBG] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login attempt for m***@roomiesync.app
+2026-11-25 23:11:04.399 +00:00 [WRN] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login failed for m***@roomiesync.app: wrong password, 2 attempt(s) left
+2026-11-25 23:11:04.400 +00:00 [DBG] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login attempt for m***@roomiesync.app
+2026-11-25 23:11:04.432 +00:00 [INF] [0a8d1b41] [anonymous] RoomieSync.Services.Auth.AuthService: Login succeeded: member df522d8f-3d42-4397-8c5a-5d369f440653, household da98b5f5-b5db-4013-9eb8-25da7d2cc45f (1 membership(s))
+2026-11-25 23:11:04.433 +00:00 [INF] [0a8d1b41] [df522d8f] RoomieSync.Services.Auth.SessionContext: User session started: member df522d8f-3d42-4397-8c5a-5d369f440653 in household da98b5f5-b5db-4013-9eb8-25da7d2cc45f
+2026-11-25 23:11:04.449 +00:00 [DBG] [0a8d1b41] [df522d8f] RoomieSync.Services.Balances.BalanceService: Debt simplification: 4 balance(s) -> 3 transfer(s) in 1 ms
+2026-11-25 23:11:04.453 +00:00 [WRN] [0a8d1b41] [df522d8f] RoomieSync.Services.Expenses.ExpenseService: Expense rejected by validation: Expense title is required.; Total amount must be greater than zero.; Select at least one person to split with.
+2026-11-25 23:11:04.456 +00:00 [INF] [0a8d1b41] [df522d8f] RoomieSync.Services.Receipts.MockReceiptParser: Mock receipt parser used for fail.jpg (2048 bytes): Gemini key is not configured or UseMock=true
+2026-11-25 23:11:05.659 +00:00 [ERR] [0a8d1b41] [df522d8f] RoomieSync.Services.Receipts.MockReceiptParser: Mock receipt recognition failed for fail.jpg
+2026-11-25 23:11:05.660 +00:00 [ERR] [0a8d1b41] [df522d8f] RoomieSync.App.ViewModels.Pages.ExpensesViewModel: Unexpected error in ExpensesViewModel
+System.InvalidOperationException: Demo crash for log sample
+   at RoomieSync.App.ViewModels.ViewModelBase.RunAsync(...)
+2026-11-25 23:11:05.670 +00:00 [INF] [0a8d1b41] [df522d8f] RoomieSync.Services.Auth.SessionContext: User session ended: member df522d8f-3d42-4397-8c5a-5d369f440653 signed out
+2026-11-25 23:11:05.671 +00:00 [INF] [0a8d1b41] [anonymous] RoomieSync.App: RoomieSync exited with code 0
