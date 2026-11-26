@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
@@ -9,8 +11,11 @@ public sealed class ChoreService(
     IChoreRepository chores,
     IMemberRepository members,
     INotificationService notifications,
-    IClock clock) : IChoreService
+    IClock clock,
+    ILogger<ChoreService>? logger = null) : IChoreService
 {
+    private readonly ILogger _log = logger ?? NullLogger<ChoreService>.Instance;
+
     public Task<IReadOnlyList<Chore>> GetChoresAsync(Guid householdId, CancellationToken ct = default)
         => chores.GetByHouseholdAsync(householdId, ct);
 
@@ -24,6 +29,7 @@ public sealed class ChoreService(
             Deadline = request.Deadline, Rotation = request.Rotation, CreatedAt = clock.Now
         };
         await chores.AddAsync(chore, ct);
+        _log.LogInformation("Chore {ChoreId} created (rotation {Rotation}, assignee {AssigneeId})", chore.Id, chore.Rotation, chore.AssigneeId);
         await NotifyAssignedAsync(chore, ct);
         return chore;
     }
@@ -53,6 +59,7 @@ public sealed class ChoreService(
         chore.Status = status;
         chore.CompletedAt = status == ChoreStatus.Done ? clock.Now : null;
         await chores.UpdateAsync(chore, ct);
+        _log.LogInformation("Chore {ChoreId} status changed to {Status}", chore.Id, status);
 
         if (status != ChoreStatus.Done || wasDone || chore.Rotation == ChoreRotation.None) return null;
 
@@ -67,11 +74,17 @@ public sealed class ChoreService(
             CreatedAt = clock.Now
         };
         await chores.AddAsync(next, ct);
+        _log.LogInformation("Chore rotated: next occurrence {ChoreId} assigned to {AssigneeId}, deadline {Deadline:yyyy-MM-dd}",
+            next.Id, next.AssigneeId, next.Deadline);
         await NotifyAssignedAsync(next, ct);
         return next;
     }
 
-    public Task DeleteChoreAsync(Guid choreId, CancellationToken ct = default) => chores.DeleteAsync(choreId, ct);
+    public Task DeleteChoreAsync(Guid choreId, CancellationToken ct = default)
+    {
+        _log.LogInformation("Chore {ChoreId} deleted", choreId);
+        return chores.DeleteAsync(choreId, ct);
+    }
 
     public Guid? GetNextAssignee(IReadOnlyList<Member> memberList, Guid? currentAssignee)
     {

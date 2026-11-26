@@ -35,3 +35,4 @@ Roommates and shared-household members constantly disagree about who owes what f
 - **Project Management:** GitHub Projects board (Backlog → Done)
 - **CI/CD:** GitHub Actions — build & test on every PR
 - **Workflow:** Feature branches + PR review before merge to main
+- **Logging:** Serilog via `ILogger<T>`, levels Debug → Fatal, daily / errors-only / per-session log files in `%LOCALAPPDATA%\RoomieSync\logs` (see [doc/sprint8/logging.md](doc/sprint8/logging.md))

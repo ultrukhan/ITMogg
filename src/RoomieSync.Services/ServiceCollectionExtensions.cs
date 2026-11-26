@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
 using RoomieSync.Core.Security;
@@ -23,6 +24,10 @@ public static class ServiceCollectionExtensions
         var gemini = configuration.GetSection(GeminiOptions.Section).Get<GeminiOptions>() ?? new GeminiOptions();
         services.AddSingleton(gemini);
 
+        // ILogger<T> для всіх сервісів. Самі "приймачі" логів (файли тощо) підключає App через Serilog;
+        // у тестах без провайдерів логи просто нікуди не пишуться.
+        services.AddLogging();
+
         services.AddSingleton<IClock, SystemClock>();
         services.AddSingleton<IPasswordHasher, Pbkdf2PasswordHasher>();
         services.AddSingleton<ISessionContext, SessionContext>();
@@ -37,7 +42,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IExportService, ExportService>();
         services.AddSingleton<IReportService, ReportService>();
         services.AddSingleton<IBackupService, BackupService>();
-        services.AddSingleton<IReceiptStorageService>(_ => new ReceiptStorageService());
+        services.AddSingleton<IReceiptStorageService>(sp =>
+            new ReceiptStorageService(logger: sp.GetService<ILogger<ReceiptStorageService>>()));
 
         if (gemini.UseMock || string.IsNullOrWhiteSpace(gemini.ResolveApiKey()))
             services.AddSingleton<IReceiptParser, MockReceiptParser>();

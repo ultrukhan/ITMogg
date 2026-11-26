@@ -1,12 +1,17 @@
 using System.Globalization;
 using System.Text;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
+using RoomieSync.Services.Logging;
 
 namespace RoomieSync.Services.Export;
 
-public sealed class ExportService : IExportService
+public sealed class ExportService(ILogger<ExportService>? logger = null) : IExportService
 {
+    private readonly ILogger _log = logger ?? NullLogger<ExportService>.Instance;
+
     private static readonly CultureInfo Inv = CultureInfo.InvariantCulture;
 
     public async Task ExportExpensesCsvAsync(string path, IEnumerable<ReportRow> rows, CancellationToken ct = default)
@@ -17,6 +22,7 @@ public sealed class ExportService : IExportService
             sb.AppendLine(string.Join(",", r.Date.ToString("yyyy-MM-dd", Inv), Csv(r.Title), Csv(r.Category), Csv(r.PaidBy),
                 r.Amount.ToString("0.00", Inv), r.YourShare.ToString("0.00", Inv)));
         await File.WriteAllTextAsync(path, sb.ToString(), new UTF8Encoding(true), ct);
+        _log.LogInformation("Expenses exported to CSV {File}", LogSanitizer.FileName(path));
     }
 
     public async Task ExportSettlementPlanCsvAsync(string path, IEnumerable<(string From, string To, decimal Amount)> transfers, CancellationToken ct = default)
@@ -26,6 +32,7 @@ public sealed class ExportService : IExportService
         foreach (var t in transfers)
             sb.AppendLine(string.Join(",", Csv(t.From), Csv(t.To), t.Amount.ToString("0.00", Inv)));
         await File.WriteAllTextAsync(path, sb.ToString(), new UTF8Encoding(true), ct);
+        _log.LogInformation("Settlement plan exported to CSV {File}", LogSanitizer.FileName(path));
     }
 
     public Task ExportExpensesPdfAsync(string path, string title, IEnumerable<ReportRow> rows, CancellationToken ct = default)
@@ -40,6 +47,7 @@ public sealed class ExportService : IExportService
         pdf.Row(cols, true, "Date", "Description", "Paid by", "Amount", "Your share");
         foreach (var r in list)
             pdf.Row(cols, false, r.Date.ToString("MMM dd, yyyy", Inv), Trim(r.Title, 38), r.PaidBy, MoneyFormat.Format(r.Amount), MoneyFormat.Format(r.YourShare));
+        _log.LogInformation("Expenses exported to PDF {File}: {Count} row(s)", LogSanitizer.FileName(path), list.Count);
         return File.WriteAllBytesAsync(path, pdf.Build(), ct);
     }
 
@@ -55,6 +63,7 @@ public sealed class ExportService : IExportService
         pdf.Row(cols, true, "From", "To", "Amount");
         foreach (var t in list) pdf.Row(cols, false, t.From, t.To, MoneyFormat.Format(t.Amount));
         if (list.Count == 0) pdf.Text("All settled up!");
+        _log.LogInformation("Settlement plan exported to PDF {File}: {Count} transfer(s)", LogSanitizer.FileName(path), list.Count);
         return File.WriteAllBytesAsync(path, pdf.Build(), ct);
     }
 

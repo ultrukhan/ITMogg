@@ -1,13 +1,18 @@
+using System.Diagnostics;
 using System.Globalization;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.Services.Receipts;
 
-public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) : IReceiptParser
+public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options, ILogger<GeminiReceiptParser>? logger = null) : IReceiptParser
 {
+    private readonly ILogger _log = logger ?? NullLogger<GeminiReceiptParser>.Instance;
+
     private const string Prompt = """
         You are a receipt parser. Extract data from this receipt photo and answer ONLY with JSON:
         {"merchant": string|null, "date": "yyyy-MM-dd"|null, "total": number|null,
@@ -18,7 +23,16 @@ public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) 
     public async Task<ParsedReceipt> ParseReceiptAsync(byte[] image, string mimeType, string? fileName = null, CancellationToken ct = default)
     {
         var key = options.ResolveApiKey();
-        if (string.IsNullOrWhiteSpace(key)) throw new ReceiptParseException("Gemini API key is not configured.");
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            _log.LogError("Receipt recognition is impossible: Gemini API key is not configured");
+            throw new ReceiptParseException("Gemini API key is not configured.");
+        }
+
+        // Ключ API у журнал не пишемо ніколи: тільки модель, розмір і тип файлу.
+        _log.LogInformation("Sending receipt {File} ({Bytes} bytes, {Mime}) to Gemini model {Model}",
+            Logging.LogSanitizer.FileName(fileName), image.Length, mimeType, options.Model);
+        var sw = Stopwatch.StartNew();
 
         using var cts = CancellationTokenSource.CreateLinkedTokenSource(ct);
         cts.CancelAfter(TimeSpan.FromSeconds(options.TimeoutSeconds));
@@ -46,19 +60,27 @@ public sealed class GeminiReceiptParser(HttpClient http, GeminiOptions options) 
             request.Headers.Add("x-goog-api-key", key);
             using var response = await http.SendAsync(request, cts.Token);
             if (!response.IsSuccessStatusCode)
+            {
+                _log.LogError("Gemini API returned HTTP {Status} after {Elapsed} ms", (int)response.StatusCode, sw.ElapsedMilliseconds);
                 throw new ReceiptParseException($"Gemini API returned {(int)response.StatusCode}.");
+            }
 
             using var doc = JsonDocument.Parse(await response.Content.ReadAsStringAsync(cts.Token));
             var text = doc.RootElement.GetProperty("candidates")[0].GetProperty("content").GetProperty("parts")[0].GetProperty("text").GetString();
-            return ParseJson(text ?? "{}");
+            var parsed = ParseJson(text ?? "{}");
+            _log.LogInformation("Receipt recognized in {Elapsed} ms: {Items} item(s), total {Total}",
+                sw.ElapsedMilliseconds, parsed.Items.Count, parsed.Total);
+            return parsed;
         }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         {
+            _log.LogWarning("Gemini did not answer within {Timeout} s, user is switched to manual entry", options.TimeoutSeconds);
             throw new ReceiptParseException($"Receipt recognition took longer than {options.TimeoutSeconds} seconds.", isTimeout: true);
         }
         catch (ReceiptParseException) { throw; }
         catch (Exception ex)
         {
+            _log.LogError(ex, "Could not recognize the receipt after {Elapsed} ms", sw.ElapsedMilliseconds);
             throw new ReceiptParseException("Could not recognize the receipt.", inner: ex);
         }
     }

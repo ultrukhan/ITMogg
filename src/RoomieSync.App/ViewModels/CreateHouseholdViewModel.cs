@@ -1,9 +1,11 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using RoomieSync.App.Localization;
 using RoomieSync.App.Services;
 using RoomieSync.Core.Abstractions.Services;
+using RoomieSync.Core.Common;
 using RoomieSync.Core.Models;
 
 namespace RoomieSync.App.ViewModels;
@@ -45,7 +47,11 @@ public sealed partial class CreateHouseholdViewModel : ViewModelBase
 	private async Task CheckExistingAsync()
 	{
 		try { CanGoBack = await _households.AnyHouseholdExistsAsync(); }
-		catch { CanGoBack = true; }
+		catch (Exception ex)
+		{
+			Logger.LogWarning(ex, "Could not check whether a household already exists");
+			CanGoBack = true;
+		}
 	}
 
 	[RelayCommand]
@@ -91,6 +97,8 @@ public sealed partial class CreateHouseholdViewModel : ViewModelBase
 		}
 		catch (Exception ex)
 		{
+			if (ex is DomainException) Logger.LogWarning("Household creation rejected: {Reason}", ex.Message);
+			else Logger.LogError(ex, "Household creation failed");
 			ErrorMessage = ex.Message;
 		}
 		finally

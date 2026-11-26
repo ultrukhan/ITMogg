@@ -1,3 +1,5 @@
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using RoomieSync.Core.Abstractions.Repositories;
 using RoomieSync.Core.Abstractions.Services;
 using RoomieSync.Core.Common;
@@ -11,8 +13,11 @@ public sealed class HouseholdService(
     IChoreRepository chores,
     IAuthService auth,
     IBalanceService balances,
-    IClock clock) : IHouseholdService
+    IClock clock,
+    ILogger<HouseholdService>? logger = null) : IHouseholdService
 {
+    private readonly ILogger _log = logger ?? NullLogger<HouseholdService>.Instance;
+
     private static readonly string[] Palette =
     {
         "#E07A5F", "#3B82F6", "#2E9E5B", "#8B5CF6", "#F5B82E", "#EC4899"
@@ -94,6 +99,8 @@ public sealed class HouseholdService(
             }, ct);
         }
 
+        _log.LogInformation("Household {HouseholdId} created with {Count} member(s), admin {AdminId}",
+            household.Id, memberNames.Count + 1, admin.Id);
         return (household, admin);
     }
 
@@ -167,6 +174,7 @@ public sealed class HouseholdService(
             JoinedAt = clock.Now
         };
         await members.AddAsync(member, ct);
+        _log.LogInformation("Member {MemberId} added to household {HouseholdId}", member.Id, householdId);
         return member;
     }
 
@@ -227,5 +235,6 @@ public sealed class HouseholdService(
 
         m.IsActive = false;
         await members.UpdateAsync(m, ct);
+        _log.LogInformation("Member {MemberId} removed (deactivated) from household {HouseholdId}", m.Id, m.HouseholdId);
     }
 }
